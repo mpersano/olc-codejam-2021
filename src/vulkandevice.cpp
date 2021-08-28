@@ -9,19 +9,19 @@
 
 namespace {
 
-std::vector<const char *> getInstanceExtensions()
+std::vector<const char *> instanceExtensions()
 {
     uint32_t extensionCount = 0;
     const char **extensionNames = glfwGetRequiredInstanceExtensions(&extensionCount);
     return std::vector<const char *>(extensionNames, extensionNames + extensionCount);
 }
 
-std::vector<const char *> getInstanceLayers()
+std::vector<const char *> instanceLayers()
 {
     return { "VK_LAYER_KHRONOS_validation" };
 }
 
-std::vector<const char *> getDeviceExtensions()
+std::vector<const char *> deviceExtensions()
 {
     return { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 }
@@ -36,7 +36,7 @@ VulkanDevice::VulkanDevice()
 
 VulkanDevice::~VulkanDevice()
 {
-    shutdown();
+    cleanup();
 }
 
 void VulkanDevice::createInstance()
@@ -50,8 +50,8 @@ void VulkanDevice::createInstance()
         .apiVersion = VK_API_VERSION_1_0
     };
 
-    const auto layers = getInstanceLayers();
-    const auto extensions = getInstanceExtensions();
+    const auto layers = instanceLayers();
+    const auto extensions = instanceExtensions();
 
     VkInstanceCreateInfo instanceCreateInfo {
         .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
@@ -70,7 +70,7 @@ void VulkanDevice::createInstance()
 
 void VulkanDevice::createDeviceAndQueue()
 {
-    const auto [physicalDevice, queueFamilyIndex] = [this]() -> std::tuple<VkPhysicalDevice, uint32_t> {
+    std::tie(m_physicalDevice, m_queueFamilyIndex) = [this]() -> std::tuple<VkPhysicalDevice, uint32_t> {
         uint32_t physicalDeviceCount = 0;
         vkEnumeratePhysicalDevices(m_instance, &physicalDeviceCount, nullptr);
 
@@ -96,19 +96,21 @@ void VulkanDevice::createDeviceAndQueue()
         }
         return { VK_NULL_HANDLE, 0 };
     }();
-    if (physicalDevice == VK_NULL_HANDLE)
+    if (m_physicalDevice == VK_NULL_HANDLE)
         throw std::runtime_error("Could not find a physical device with a graphics queue");
+
+    std::cout << "m_physicalDevice=" << m_physicalDevice << " queueFamilyIndex=" << m_queueFamilyIndex << '\n';
 
     float queuePriority = 1.0f;
 
     VkDeviceQueueCreateInfo deviceQueueCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-        .queueFamilyIndex = queueFamilyIndex,
+        .queueFamilyIndex = m_queueFamilyIndex,
         .queueCount = 1,
         .pQueuePriorities = &queuePriority
     };
 
-    const auto extensions = getDeviceExtensions();
+    const auto extensions = deviceExtensions();
 
     VkDeviceCreateInfo deviceCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -118,13 +120,16 @@ void VulkanDevice::createDeviceAndQueue()
         .ppEnabledExtensionNames = extensions.data()
     };
 
-    if (vkCreateDevice(physicalDevice, &deviceCreateInfo, nullptr, &m_device) != VK_SUCCESS)
+    if (vkCreateDevice(m_physicalDevice, &deviceCreateInfo, nullptr, &m_device) != VK_SUCCESS)
         throw std::runtime_error("Failed to create device");
 
-    std::cout << "m_device=" << m_device << " queueFamilyIndex=" << queueFamilyIndex << '\n';
+    std::cout << "m_device=" << m_device << '\n';
+
+    vkGetDeviceQueue(m_device, m_queueFamilyIndex, 0, &m_queue);
+    std::cout << "m_queue=" << m_queue << '\n';
 }
 
-void VulkanDevice::shutdown()
+void VulkanDevice::cleanup()
 {
     if (m_device != VK_NULL_HANDLE)
         vkDestroyDevice(m_device, nullptr);
