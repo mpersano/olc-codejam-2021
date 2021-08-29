@@ -4,20 +4,20 @@
 
 namespace V {
 
-class ShaderModule : private NonCopyable
+class PipelineLayout : private NonCopyable
 {
 public:
-    explicit ShaderModule(const Device *device, const char *spvFilePath);
-    ~ShaderModule();
+    explicit PipelineLayout(const Device *device);
+    ~PipelineLayout();
 
     const Device *device() const { return m_device; }
     VkDevice deviceHandle() const { return m_device->device(); }
 
-    VkShaderModule handle() const { return m_handle; }
+    VkPipelineLayout handle() const { return m_handle; }
 
 private:
     const Device *m_device;
-    VkShaderModule m_handle = VK_NULL_HANDLE;
+    VkPipelineLayout m_handle = VK_NULL_HANDLE;
 };
 
 } // namespace V

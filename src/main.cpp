@@ -2,6 +2,7 @@
 #include "vcommandpool.h"
 #include "vdevice.h"
 #include "vpipeline.h"
+#include "vpipelinelayout.h"
 #include "vsemaphore.h"
 #include "vshadermodule.h"
 #include "vsurface.h"
@@ -31,6 +32,7 @@ private:
     std::unique_ptr<V::Swapchain> m_swapchain;
     std::unique_ptr<V::ShaderModule> m_vertexShaderModule;
     std::unique_ptr<V::ShaderModule> m_fragmentShaderModule;
+    std::unique_ptr<V::PipelineLayout> m_pipelineLayout;
     std::unique_ptr<V::Pipeline> m_pipeline;
     std::unique_ptr<V::CommandPool> m_commandPool;
     std::unique_ptr<V::Semaphore> m_imageAvailableSemaphore;
@@ -45,15 +47,16 @@ VulkanRenderer::VulkanRenderer(GLFWwindow *window, int width, int height)
     , m_swapchain(m_surface->createSwapchain(width, height, 3))
     , m_vertexShaderModule(m_device->createShaderModule("vert.spv"))
     , m_fragmentShaderModule(m_device->createShaderModule("frag.spv"))
-    , m_pipeline(new V::Pipeline(m_device.get()))
+    , m_pipelineLayout(m_device->createPipelineLayout())
     , m_commandPool(m_device->createCommandPool())
     , m_imageAvailableSemaphore(m_device->createSemaphore())
     , m_renderFinishedSemaphore(m_device->createSemaphore())
 {
-    m_pipeline->setViewport(m_swapchain->width(), m_swapchain->height());
-    m_pipeline->addShaderStage(VK_SHADER_STAGE_VERTEX_BIT, m_vertexShaderModule.get());
-    m_pipeline->addShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, m_fragmentShaderModule.get());
-    m_pipeline->create(m_swapchain->renderPass());
+    auto pipelineBuilder = m_device->pipelineBuilder();
+    pipelineBuilder.setViewport(m_swapchain->width(), m_swapchain->height());
+    pipelineBuilder.addShaderStage(VK_SHADER_STAGE_VERTEX_BIT, m_vertexShaderModule.get());
+    pipelineBuilder.addShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, m_fragmentShaderModule.get());
+    m_pipeline = pipelineBuilder.create(m_pipelineLayout.get(), m_swapchain->renderPass());
 
     const auto renderPass = m_swapchain->renderPass();
     const auto &framebuffers = m_swapchain->framebuffers();

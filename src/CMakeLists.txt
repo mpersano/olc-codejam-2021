@@ -11,6 +11,8 @@ add_executable(game
     vswapchain.h
     vshadermodule.cpp
     vshadermodule.h
+    vpipelinelayout.cpp
+    vpipelinelayout.h
     vpipeline.cpp
     vpipeline.h
     vcommandpool.cpp

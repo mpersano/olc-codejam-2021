@@ -1,29 +1,20 @@
 #include "vpipeline.h"
 
 #include "vdevice.h"
+#include "vpipelinelayout.h"
 #include "vshadermodule.h"
 #include "vswapchain.h"
 
-#include <iostream>
 #include <stdexcept>
 
 namespace V {
 
-Pipeline::Pipeline(const Device *device)
+PipelineBuilder::PipelineBuilder(const Device *device)
     : m_device(device)
 {
 }
 
-Pipeline::~Pipeline()
-{
-    if (m_pipelineLayout != VK_NULL_HANDLE)
-        vkDestroyPipelineLayout(m_device->device(), m_pipelineLayout, nullptr);
-
-    if (m_pipeline != VK_NULL_HANDLE)
-        vkDestroyPipeline(m_device->device(), m_pipeline, nullptr);
-}
-
-void Pipeline::setViewport(uint32_t width, uint32_t height)
+void PipelineBuilder::setViewport(uint32_t width, uint32_t height)
 {
     m_viewport = VkViewport {
         .x = 0.0f,
@@ -39,7 +30,7 @@ void Pipeline::setViewport(uint32_t width, uint32_t height)
     };
 }
 
-void Pipeline::addShaderStage(VkShaderStageFlagBits stage, ShaderModule *module)
+void PipelineBuilder::addShaderStage(VkShaderStageFlagBits stage, ShaderModule *module)
 {
     VkPipelineShaderStageCreateInfo shaderStage = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -50,7 +41,7 @@ void Pipeline::addShaderStage(VkShaderStageFlagBits stage, ShaderModule *module)
     m_shaderStages.push_back(shaderStage);
 }
 
-void Pipeline::create(VkRenderPass renderPass)
+std::unique_ptr<Pipeline> PipelineBuilder::create(const PipelineLayout *layout, VkRenderPass renderPass) const
 {
     VkPipelineVertexInputStateCreateInfo vertexInputState = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
@@ -107,17 +98,6 @@ void Pipeline::create(VkRenderPass renderPass)
         .pAttachments = &colorBlendAttachmentState,
         .blendConstants = { 0.0f, 0.0f, 0.0f, 0.0f }
     };
-
-    VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-        .setLayoutCount = 0,
-        .pSetLayouts = nullptr,
-        .pushConstantRangeCount = 0,
-        .pPushConstantRanges = nullptr,
-    };
-    if (vkCreatePipelineLayout(m_device->device(), &pipelineLayoutCreateInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
-        throw std::runtime_error("Failed to create pipeline layout");
-
     VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
         .stageCount = static_cast<uint32_t>(m_shaderStages.size()),
@@ -130,16 +110,26 @@ void Pipeline::create(VkRenderPass renderPass)
         .pDepthStencilState = nullptr,
         .pColorBlendState = &colorBlendState,
         .pDynamicState = nullptr,
-        .layout = m_pipelineLayout,
+        .layout = layout->handle(),
         .renderPass = renderPass,
         .subpass = 0,
         .basePipelineHandle = VK_NULL_HANDLE,
         .basePipelineIndex = -1
     };
-    if (vkCreateGraphicsPipelines(m_device->device(), VK_NULL_HANDLE, 1, &graphicsPipelineCreateInfo, nullptr, &m_pipeline) != VK_SUCCESS)
-        throw std::runtime_error("Failed to create pipeline");
+    return std::make_unique<Pipeline>(m_device, graphicsPipelineCreateInfo);
+}
 
-    std::cout << "pipeline=" << m_pipeline << '\n';
+Pipeline::Pipeline(const Device *device, const VkGraphicsPipelineCreateInfo &createInfo)
+    : m_device(device)
+{
+    if (vkCreateGraphicsPipelines(m_device->device(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_handle) != VK_SUCCESS)
+        throw std::runtime_error("Failed to create pipeline");
+}
+
+Pipeline::~Pipeline()
+{
+    if (m_handle != VK_NULL_HANDLE)
+        vkDestroyPipeline(m_device->device(), m_handle, nullptr);
 }
 
 } // namespace V

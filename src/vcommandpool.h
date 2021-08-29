@@ -1,11 +1,6 @@
 #pragma once
 
-#include "noncopyable.h"
 #include "vdevice.h"
-
-#include <vulkan/vulkan.h>
-
-#include <memory>
 
 namespace V {
 

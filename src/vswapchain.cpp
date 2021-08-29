@@ -5,8 +5,6 @@
 #include "vsurface.h"
 
 #include <cassert>
-#include <iostream>
-#include <iterator>
 
 namespace V {
 
@@ -77,8 +75,6 @@ void Swapchain::createSwapchain()
     if (vkCreateSwapchainKHR(m_surface->deviceHandle(), &swapchainCreateInfo, nullptr, &m_swapchain) != VK_SUCCESS)
         throw std::runtime_error("Failed to create swapchain");
 
-    std::cout << "swapchain=" << m_swapchain << '\n';
-
     // get image handles
 
     uint32_t imageCount;
@@ -108,10 +104,6 @@ void Swapchain::createImageViews()
         if (vkCreateImageView(m_surface->deviceHandle(), &imageViewCreateInfo, nullptr, &m_imageViews[i]) != VK_SUCCESS)
             throw std::runtime_error("Failed to create image view");
     }
-
-    std::cout << "image views=";
-    std::copy(m_imageViews.begin(), m_imageViews.end(), std::ostream_iterator<VkImageView>(std::cout, " "));
-    std::cout << '\n';
 }
 
 void Swapchain::createRenderPass()
@@ -148,8 +140,6 @@ void Swapchain::createRenderPass()
 
     if (vkCreateRenderPass(m_surface->deviceHandle(), &renderPassCreateInfo, nullptr, &m_renderPass) != VK_SUCCESS)
         throw std::runtime_error("Failed to create render pass");
-
-    std::cout << "render pass=" << m_renderPass << '\n';
 }
 
 void Swapchain::createFramebuffers()
@@ -171,10 +161,6 @@ void Swapchain::createFramebuffers()
         if (vkCreateFramebuffer(m_surface->deviceHandle(), &framebufferCreateInfo, nullptr, &m_framebuffers[i]) != VK_SUCCESS)
             throw std::runtime_error("Failed to create framebuffer");
     }
-
-    std::cout << "framebuffers=";
-    std::copy(m_framebuffers.begin(), m_framebuffers.end(), std::ostream_iterator<VkFramebuffer>(std::cout, " "));
-    std::cout << '\n';
 }
 
 void Swapchain::cleanup()

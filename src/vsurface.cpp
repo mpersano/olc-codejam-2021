@@ -5,7 +5,6 @@
 
 #include <GLFW/glfw3.h>
 
-#include <iostream>
 #include <stdexcept>
 
 namespace V {
@@ -20,8 +19,6 @@ Surface::Surface(const Device *device, GLFWwindow *window)
     vkGetPhysicalDeviceSurfaceSupportKHR(device->physicalDevice(), 0, m_handle, &presentSupported);
     if (!presentSupported)
         throw std::runtime_error("Surface doesn't support presentation");
-
-    std::cout << "m_surface=" << m_handle << '\n';
 }
 
 Surface::~Surface()

@@ -1,6 +1,8 @@
 #include "vdevice.h"
 
 #include "vcommandpool.h"
+#include "vpipeline.h"
+#include "vpipelinelayout.h"
 #include "vsemaphore.h"
 #include "vshadermodule.h"
 #include "vsurface.h"
@@ -8,7 +10,6 @@
 #include <GLFW/glfw3.h>
 
 #include <algorithm>
-#include <iostream>
 #include <stdexcept>
 #include <vector>
 
@@ -71,8 +72,6 @@ void Device::createInstance()
 
     if (vkCreateInstance(&instanceCreateInfo, nullptr, &m_instance) != VK_SUCCESS)
         throw std::runtime_error("Failed to create instance");
-
-    std::cout << "vkInstance=" << m_instance << '\n';
 }
 
 void Device::createDeviceAndQueue()
@@ -106,8 +105,6 @@ void Device::createDeviceAndQueue()
     if (m_physicalDevice == VK_NULL_HANDLE)
         throw std::runtime_error("Could not find a physical device with a graphics queue");
 
-    std::cout << "m_physicalDevice=" << m_physicalDevice << " queueFamilyIndex=" << m_queueFamilyIndex << '\n';
-
     float queuePriority = 1.0f;
 
     VkDeviceQueueCreateInfo deviceQueueCreateInfo = {
@@ -130,10 +127,7 @@ void Device::createDeviceAndQueue()
     if (vkCreateDevice(m_physicalDevice, &deviceCreateInfo, nullptr, &m_device) != VK_SUCCESS)
         throw std::runtime_error("Failed to create device");
 
-    std::cout << "m_device=" << m_device << '\n';
-
     vkGetDeviceQueue(m_device, m_queueFamilyIndex, 0, &m_queue);
-    std::cout << "m_queue=" << m_queue << '\n';
 }
 
 void Device::cleanup()
@@ -163,6 +157,16 @@ std::unique_ptr<CommandPool> Device::createCommandPool() const
 std::unique_ptr<ShaderModule> Device::createShaderModule(const char *spvFilePath) const
 {
     return std::make_unique<ShaderModule>(this, spvFilePath);
+}
+
+std::unique_ptr<PipelineLayout> Device::createPipelineLayout() const
+{
+    return std::make_unique<PipelineLayout>(this);
+}
+
+PipelineBuilder Device::pipelineBuilder() const
+{
+    return PipelineBuilder(this);
 }
 
 } // namespace V

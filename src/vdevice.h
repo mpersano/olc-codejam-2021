@@ -14,6 +14,8 @@ class Surface;
 class CommandPool;
 class ShaderModule;
 class Semaphore;
+class PipelineBuilder;
+class PipelineLayout;
 
 class Device : private NonCopyable
 {
@@ -31,6 +33,8 @@ public:
     std::unique_ptr<Semaphore> createSemaphore() const;
     std::unique_ptr<CommandPool> createCommandPool() const;
     std::unique_ptr<ShaderModule> createShaderModule(const char *spvFilePath) const;
+    std::unique_ptr<PipelineLayout> createPipelineLayout() const;
+    PipelineBuilder pipelineBuilder() const;
 
 private:
     void createInstance();
