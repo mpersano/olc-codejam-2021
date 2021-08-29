@@ -9,7 +9,6 @@
 
 namespace V {
 
-class Swapchain;
 class ShaderModule;
 
 class Pipeline : private NonCopyable
@@ -23,11 +22,14 @@ public:
 
     VkPipeline handle() const { return m_pipeline; }
 
+    void setViewport(uint32_t width, uint32_t height);
     void addShaderStage(VkShaderStageFlagBits stage, ShaderModule *module);
-    void create(const Swapchain *swapchain);
+    void create(VkRenderPass renderPass);
 
 private:
     const Device *m_device;
+    VkViewport m_viewport;
+    VkRect2D m_scissor;
     std::vector<VkPipelineShaderStageCreateInfo> m_shaderStages;
     VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
     VkPipeline m_pipeline = VK_NULL_HANDLE;

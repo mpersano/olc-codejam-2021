@@ -23,6 +23,22 @@ Pipeline::~Pipeline()
         vkDestroyPipeline(m_device->device(), m_pipeline, nullptr);
 }
 
+void Pipeline::setViewport(uint32_t width, uint32_t height)
+{
+    m_viewport = VkViewport {
+        .x = 0.0f,
+        .y = 0.0f,
+        .width = static_cast<float>(width),
+        .height = static_cast<float>(height),
+        .minDepth = 0.0f,
+        .maxDepth = 1.0f,
+    };
+    m_scissor = VkRect2D {
+        .offset = VkOffset2D { 0, 0 },
+        .extent = VkExtent2D { width, height },
+    };
+}
+
 void Pipeline::addShaderStage(VkShaderStageFlagBits stage, ShaderModule *module)
 {
     VkPipelineShaderStageCreateInfo shaderStage = {
@@ -34,7 +50,7 @@ void Pipeline::addShaderStage(VkShaderStageFlagBits stage, ShaderModule *module)
     m_shaderStages.push_back(shaderStage);
 }
 
-void Pipeline::create(const Swapchain *swapchain)
+void Pipeline::create(VkRenderPass renderPass)
 {
     VkPipelineVertexInputStateCreateInfo vertexInputState = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
@@ -44,24 +60,12 @@ void Pipeline::create(const Swapchain *swapchain)
         .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
         .primitiveRestartEnable = VK_FALSE
     };
-    VkViewport viewport = {
-        .x = 0.0f,
-        .y = 0.0f,
-        .width = static_cast<float>(swapchain->width()),
-        .height = static_cast<float>(swapchain->height()),
-        .minDepth = 0.0f,
-        .maxDepth = 1.0f,
-    };
-    VkRect2D scissor = {
-        .offset = VkOffset2D { 0, 0 },
-        .extent = VkExtent2D { swapchain->width(), swapchain->height() },
-    };
     VkPipelineViewportStateCreateInfo viewportState = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
         .viewportCount = 1,
-        .pViewports = &viewport,
+        .pViewports = &m_viewport,
         .scissorCount = 1,
-        .pScissors = &scissor
+        .pScissors = &m_scissor
     };
     VkPipelineRasterizationStateCreateInfo rasterizationState = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
@@ -127,7 +131,7 @@ void Pipeline::create(const Swapchain *swapchain)
         .pColorBlendState = &colorBlendState,
         .pDynamicState = nullptr,
         .layout = m_pipelineLayout,
-        .renderPass = swapchain->renderPass(),
+        .renderPass = renderPass,
         .subpass = 0,
         .basePipelineHandle = VK_NULL_HANDLE,
         .basePipelineIndex = -1

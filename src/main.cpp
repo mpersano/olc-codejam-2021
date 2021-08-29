@@ -50,9 +50,10 @@ VulkanRenderer::VulkanRenderer(GLFWwindow *window, int width, int height)
     , m_imageAvailableSemaphore(m_device->createSemaphore())
     , m_renderFinishedSemaphore(m_device->createSemaphore())
 {
+    m_pipeline->setViewport(m_swapchain->width(), m_swapchain->height());
     m_pipeline->addShaderStage(VK_SHADER_STAGE_VERTEX_BIT, m_vertexShaderModule.get());
     m_pipeline->addShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, m_fragmentShaderModule.get());
-    m_pipeline->create(m_swapchain.get());
+    m_pipeline->create(m_swapchain->renderPass());
 
     const auto renderPass = m_swapchain->renderPass();
     const auto &framebuffers = m_swapchain->framebuffers();
