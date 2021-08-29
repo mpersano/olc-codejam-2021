@@ -9,15 +9,17 @@
 
 struct GLFWwindow;
 
-class VulkanSwapchain;
+namespace V {
 
-class VulkanSurface : private NonCopyable
+class Swapchain;
+
+class Surface : private NonCopyable
 {
 public:
-    VulkanSurface(const VulkanDevice *device, GLFWwindow *window);
-    ~VulkanSurface();
+    Surface(const Device *device, GLFWwindow *window);
+    ~Surface();
 
-    const VulkanDevice *device() const { return m_device; }
+    const Device *device() const { return m_device; }
     VkDevice deviceHandle() const { return m_device->device(); }
 
     VkSurfaceKHR handle() const { return m_handle; }
@@ -26,9 +28,11 @@ public:
     std::vector<VkSurfaceFormatKHR> surfaceFormats() const;
     std::vector<VkPresentModeKHR> presentModes() const;
 
-    std::unique_ptr<VulkanSwapchain> createSwapchain(int width, int height, int backbufferCount) const;
+    std::unique_ptr<Swapchain> createSwapchain(int width, int height, int backbufferCount) const;
 
 private:
-    const VulkanDevice *m_device;
+    const Device *m_device;
     VkSurfaceKHR m_handle = VK_NULL_HANDLE;
 };
+
+} // namespace V

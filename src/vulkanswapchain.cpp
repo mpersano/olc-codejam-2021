@@ -8,7 +8,9 @@
 #include <iostream>
 #include <iterator>
 
-VulkanSwapchain::VulkanSwapchain(const VulkanSurface *surface, int width, int height, int backbufferCount)
+namespace V {
+
+Swapchain::Swapchain(const Surface *surface, int width, int height, int backbufferCount)
     : m_surface(surface)
     , m_width(width)
     , m_height(height)
@@ -20,12 +22,12 @@ VulkanSwapchain::VulkanSwapchain(const VulkanSurface *surface, int width, int he
     createFramebuffers();
 }
 
-VulkanSwapchain::~VulkanSwapchain()
+Swapchain::~Swapchain()
 {
     cleanup();
 }
 
-void VulkanSwapchain::createSwapchain()
+void Swapchain::createSwapchain()
 {
     const std::vector<VkSurfaceFormatKHR> surfaceFormats = m_surface->surfaceFormats();
 
@@ -86,7 +88,7 @@ void VulkanSwapchain::createSwapchain()
     vkGetSwapchainImagesKHR(m_surface->deviceHandle(), m_swapchain, &imageCount, m_images.data());
 }
 
-void VulkanSwapchain::createImageViews()
+void Swapchain::createImageViews()
 {
     m_imageViews.resize(m_backbufferCount);
     std::fill(m_imageViews.begin(), m_imageViews.end(), static_cast<VkImageView>(VK_NULL_HANDLE));
@@ -112,7 +114,7 @@ void VulkanSwapchain::createImageViews()
     std::cout << '\n';
 }
 
-void VulkanSwapchain::createRenderPass()
+void Swapchain::createRenderPass()
 {
     VkAttachmentDescription attachmentDescription = {
         .format = m_format,
@@ -150,7 +152,7 @@ void VulkanSwapchain::createRenderPass()
     std::cout << "render pass=" << m_renderPass << '\n';
 }
 
-void VulkanSwapchain::createFramebuffers()
+void Swapchain::createFramebuffers()
 {
     m_framebuffers.resize(m_backbufferCount);
     std::fill(m_framebuffers.begin(), m_framebuffers.end(), static_cast<VkFramebuffer>(VK_NULL_HANDLE));
@@ -175,7 +177,7 @@ void VulkanSwapchain::createFramebuffers()
     std::cout << '\n';
 }
 
-void VulkanSwapchain::cleanup()
+void Swapchain::cleanup()
 {
     for (auto framebuffer : m_framebuffers) {
         if (framebuffer != VK_NULL_HANDLE)
@@ -194,7 +196,7 @@ void VulkanSwapchain::cleanup()
         vkDestroySwapchainKHR(m_surface->deviceHandle(), m_swapchain, nullptr);
 }
 
-uint32_t VulkanSwapchain::acquireNextImage(VulkanSemaphore *semaphore) const
+uint32_t Swapchain::acquireNextImage(Semaphore *semaphore) const
 {
     uint32_t imageIndex;
     VkResult result = vkAcquireNextImageKHR(m_surface->deviceHandle(), m_swapchain, UINT64_MAX, semaphore->handle(), VK_NULL_HANDLE, &imageIndex);
@@ -205,7 +207,7 @@ uint32_t VulkanSwapchain::acquireNextImage(VulkanSemaphore *semaphore) const
     return imageIndex;
 }
 
-void VulkanSwapchain::queuePresent(uint32_t imageIndex, VulkanSemaphore *semaphore) const
+void Swapchain::queuePresent(uint32_t imageIndex, Semaphore *semaphore) const
 {
     VkSemaphore semaphoreHandle = semaphore->handle();
     VkPresentInfoKHR presentInfo = {
@@ -222,3 +224,5 @@ void VulkanSwapchain::queuePresent(uint32_t imageIndex, VulkanSemaphore *semapho
         throw std::runtime_error("Failed to queue image for presentation");
     }
 }
+
+} // namespace V

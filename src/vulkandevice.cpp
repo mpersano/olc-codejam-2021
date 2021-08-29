@@ -12,6 +12,8 @@
 #include <stdexcept>
 #include <vector>
 
+namespace V {
+
 namespace {
 
 std::vector<const char *> instanceExtensions()
@@ -33,18 +35,18 @@ std::vector<const char *> deviceExtensions()
 
 } // namespace
 
-VulkanDevice::VulkanDevice()
+Device::Device()
 {
     createInstance();
     createDeviceAndQueue();
 }
 
-VulkanDevice::~VulkanDevice()
+Device::~Device()
 {
     cleanup();
 }
 
-void VulkanDevice::createInstance()
+void Device::createInstance()
 {
     VkApplicationInfo applicationInfo {
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -73,7 +75,7 @@ void VulkanDevice::createInstance()
     std::cout << "vkInstance=" << m_instance << '\n';
 }
 
-void VulkanDevice::createDeviceAndQueue()
+void Device::createDeviceAndQueue()
 {
     std::tie(m_physicalDevice, m_queueFamilyIndex) = [this]() -> std::tuple<VkPhysicalDevice, uint32_t> {
         uint32_t physicalDeviceCount = 0;
@@ -134,7 +136,7 @@ void VulkanDevice::createDeviceAndQueue()
     std::cout << "m_queue=" << m_queue << '\n';
 }
 
-void VulkanDevice::cleanup()
+void Device::cleanup()
 {
     if (m_device != VK_NULL_HANDLE)
         vkDestroyDevice(m_device, nullptr);
@@ -143,22 +145,24 @@ void VulkanDevice::cleanup()
         vkDestroyInstance(m_instance, nullptr);
 }
 
-std::unique_ptr<VulkanSurface> VulkanDevice::createSurface(GLFWwindow *window) const
+std::unique_ptr<Surface> Device::createSurface(GLFWwindow *window) const
 {
-    return std::make_unique<VulkanSurface>(this, window);
+    return std::make_unique<Surface>(this, window);
 }
 
-std::unique_ptr<VulkanSemaphore> VulkanDevice::createSemaphore() const
+std::unique_ptr<Semaphore> Device::createSemaphore() const
 {
-    return std::make_unique<VulkanSemaphore>(this);
+    return std::make_unique<Semaphore>(this);
 }
 
-std::unique_ptr<VulkanCommandPool> VulkanDevice::createCommandPool() const
+std::unique_ptr<CommandPool> Device::createCommandPool() const
 {
-    return std::make_unique<VulkanCommandPool>(this);
+    return std::make_unique<CommandPool>(this);
 }
 
-std::unique_ptr<VulkanShaderModule> VulkanDevice::createShaderModule(const char *spvFilePath) const
+std::unique_ptr<ShaderModule> Device::createShaderModule(const char *spvFilePath) const
 {
-    return std::make_unique<VulkanShaderModule>(this, spvFilePath);
+    return std::make_unique<ShaderModule>(this, spvFilePath);
 }
+
+} // namespace V

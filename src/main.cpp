@@ -26,26 +26,26 @@ public:
 
 private:
     GLFWwindow *m_window;
-    std::unique_ptr<VulkanDevice> m_device;
-    std::unique_ptr<VulkanSurface> m_surface;
-    std::unique_ptr<VulkanSwapchain> m_swapchain;
-    std::unique_ptr<VulkanShaderModule> m_vertexShaderModule;
-    std::unique_ptr<VulkanShaderModule> m_fragmentShaderModule;
-    std::unique_ptr<VulkanPipeline> m_pipeline;
-    std::unique_ptr<VulkanCommandPool> m_commandPool;
-    std::unique_ptr<VulkanSemaphore> m_imageAvailableSemaphore;
-    std::unique_ptr<VulkanSemaphore> m_renderFinishedSemaphore;
-    std::vector<std::unique_ptr<VulkanCommandBuffer>> m_commandBuffers;
+    std::unique_ptr<V::Device> m_device;
+    std::unique_ptr<V::Surface> m_surface;
+    std::unique_ptr<V::Swapchain> m_swapchain;
+    std::unique_ptr<V::ShaderModule> m_vertexShaderModule;
+    std::unique_ptr<V::ShaderModule> m_fragmentShaderModule;
+    std::unique_ptr<V::Pipeline> m_pipeline;
+    std::unique_ptr<V::CommandPool> m_commandPool;
+    std::unique_ptr<V::Semaphore> m_imageAvailableSemaphore;
+    std::unique_ptr<V::Semaphore> m_renderFinishedSemaphore;
+    std::vector<std::unique_ptr<V::CommandBuffer>> m_commandBuffers;
 };
 
 VulkanRenderer::VulkanRenderer(GLFWwindow *window, int width, int height)
     : m_window(window)
-    , m_device(new VulkanDevice)
+    , m_device(new V::Device)
     , m_surface(m_device->createSurface(window))
     , m_swapchain(m_surface->createSwapchain(width, height, 3))
     , m_vertexShaderModule(m_device->createShaderModule("vert.spv"))
     , m_fragmentShaderModule(m_device->createShaderModule("frag.spv"))
-    , m_pipeline(new VulkanPipeline(m_device.get()))
+    , m_pipeline(new V::Pipeline(m_device.get()))
     , m_commandPool(m_device->createCommandPool())
     , m_imageAvailableSemaphore(m_device->createSemaphore())
     , m_renderFinishedSemaphore(m_device->createSemaphore())

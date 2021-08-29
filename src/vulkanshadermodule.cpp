@@ -4,7 +4,9 @@
 
 #include <stdexcept>
 
-VulkanShaderModule::VulkanShaderModule(const VulkanDevice *device, const char *spvFilePath)
+namespace V {
+
+ShaderModule::ShaderModule(const Device *device, const char *spvFilePath)
     : m_device(device)
 {
     const auto shaderCode = readFile(spvFilePath);
@@ -19,8 +21,10 @@ VulkanShaderModule::VulkanShaderModule(const VulkanDevice *device, const char *s
         throw std::runtime_error("Failed to create shader module");
 }
 
-VulkanShaderModule::~VulkanShaderModule()
+ShaderModule::~ShaderModule()
 {
     if (m_handle != VK_NULL_HANDLE)
         vkDestroyShaderModule(m_device->device(), m_handle, nullptr);
 }
+
+} // namespace V

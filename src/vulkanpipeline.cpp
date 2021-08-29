@@ -7,12 +7,14 @@
 #include <iostream>
 #include <stdexcept>
 
-VulkanPipeline::VulkanPipeline(const VulkanDevice *device)
+namespace V {
+
+Pipeline::Pipeline(const Device *device)
     : m_device(device)
 {
 }
 
-VulkanPipeline::~VulkanPipeline()
+Pipeline::~Pipeline()
 {
     if (m_pipelineLayout != VK_NULL_HANDLE)
         vkDestroyPipelineLayout(m_device->device(), m_pipelineLayout, nullptr);
@@ -21,7 +23,7 @@ VulkanPipeline::~VulkanPipeline()
         vkDestroyPipeline(m_device->device(), m_pipeline, nullptr);
 }
 
-void VulkanPipeline::addShaderStage(VkShaderStageFlagBits stage, VulkanShaderModule *module)
+void Pipeline::addShaderStage(VkShaderStageFlagBits stage, ShaderModule *module)
 {
     VkPipelineShaderStageCreateInfo shaderStage = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -32,7 +34,7 @@ void VulkanPipeline::addShaderStage(VkShaderStageFlagBits stage, VulkanShaderMod
     m_shaderStages.push_back(shaderStage);
 }
 
-void VulkanPipeline::create(const VulkanSwapchain *swapchain)
+void Pipeline::create(const Swapchain *swapchain)
 {
     VkPipelineVertexInputStateCreateInfo vertexInputState = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
@@ -135,3 +137,5 @@ void VulkanPipeline::create(const VulkanSwapchain *swapchain)
 
     std::cout << "pipeline=" << m_pipeline << '\n';
 }
+
+} // namespace V

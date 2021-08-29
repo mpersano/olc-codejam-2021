@@ -2,7 +2,9 @@
 
 #include <stdexcept>
 
-VulkanSemaphore::VulkanSemaphore(const VulkanDevice *device)
+namespace V {
+
+Semaphore::Semaphore(const Device *device)
     : m_device(device)
 {
     VkSemaphoreCreateInfo semaphoreCreateInfo = {
@@ -13,8 +15,10 @@ VulkanSemaphore::VulkanSemaphore(const VulkanDevice *device)
         throw std::runtime_error("Failed to create semaphore");
 }
 
-VulkanSemaphore::~VulkanSemaphore()
+Semaphore::~Semaphore()
 {
     if (m_handle != VK_NULL_HANDLE)
         vkDestroySemaphore(m_device->device(), m_handle, nullptr);
 }
+
+} // namespace V

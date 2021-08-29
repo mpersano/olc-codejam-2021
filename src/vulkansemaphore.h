@@ -5,18 +5,22 @@
 
 #include <vulkan/vulkan.h>
 
-class VulkanSemaphore : private NonCopyable
+namespace V {
+
+class Semaphore : private NonCopyable
 {
 public:
-    explicit VulkanSemaphore(const VulkanDevice *device);
-    ~VulkanSemaphore();
+    explicit Semaphore(const Device *device);
+    ~Semaphore();
 
-    const VulkanDevice *device() const { return m_device; }
+    const Device *device() const { return m_device; }
     VkDevice deviceHandle() const { return m_device->device(); }
 
     VkSemaphore handle() const { return m_handle; }
 
 private:
-    const VulkanDevice *m_device;
+    const Device *m_device;
     VkSemaphore m_handle = VK_NULL_HANDLE;
 };
+
+} // namespace V

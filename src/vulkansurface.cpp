@@ -8,7 +8,9 @@
 #include <iostream>
 #include <stdexcept>
 
-VulkanSurface::VulkanSurface(const VulkanDevice *device, GLFWwindow *window)
+namespace V {
+
+Surface::Surface(const Device *device, GLFWwindow *window)
     : m_device(device)
 {
     if (glfwCreateWindowSurface(device->instance(), window, nullptr, &m_handle) != VK_SUCCESS)
@@ -22,20 +24,20 @@ VulkanSurface::VulkanSurface(const VulkanDevice *device, GLFWwindow *window)
     std::cout << "m_surface=" << m_handle << '\n';
 }
 
-VulkanSurface::~VulkanSurface()
+Surface::~Surface()
 {
     if (m_handle != VK_NULL_HANDLE)
         vkDestroySurfaceKHR(m_device->instance(), m_handle, nullptr);
 }
 
-VkSurfaceCapabilitiesKHR VulkanSurface::surfaceCapabilities() const
+VkSurfaceCapabilitiesKHR Surface::surfaceCapabilities() const
 {
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_device->physicalDevice(), m_handle, &surfaceCapabilities);
     return surfaceCapabilities;
 }
 
-std::vector<VkSurfaceFormatKHR> VulkanSurface::surfaceFormats() const
+std::vector<VkSurfaceFormatKHR> Surface::surfaceFormats() const
 {
     uint32_t count = 0;
     vkGetPhysicalDeviceSurfaceFormatsKHR(m_device->physicalDevice(), m_handle, &count, nullptr);
@@ -46,7 +48,7 @@ std::vector<VkSurfaceFormatKHR> VulkanSurface::surfaceFormats() const
     return surfaceFormats;
 }
 
-std::vector<VkPresentModeKHR> VulkanSurface::presentModes() const
+std::vector<VkPresentModeKHR> Surface::presentModes() const
 {
     uint32_t count = 0;
     vkGetPhysicalDeviceSurfacePresentModesKHR(m_device->physicalDevice(), m_handle, &count, nullptr);
@@ -57,7 +59,9 @@ std::vector<VkPresentModeKHR> VulkanSurface::presentModes() const
     return presentModes;
 }
 
-std::unique_ptr<VulkanSwapchain> VulkanSurface::createSwapchain(int width, int height, int backbufferCount) const
+std::unique_ptr<Swapchain> Surface::createSwapchain(int width, int height, int backbufferCount) const
 {
-    return std::make_unique<VulkanSwapchain>(this, width, height, backbufferCount);
+    return std::make_unique<Swapchain>(this, width, height, backbufferCount);
 }
+
+} // namespace V

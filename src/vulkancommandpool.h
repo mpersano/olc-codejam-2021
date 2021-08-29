@@ -7,22 +7,26 @@
 
 #include <memory>
 
-class VulkanCommandBuffer;
+namespace V {
 
-class VulkanCommandPool : private NonCopyable
+class CommandBuffer;
+
+class CommandPool : private NonCopyable
 {
 public:
-    explicit VulkanCommandPool(const VulkanDevice *device);
-    ~VulkanCommandPool();
+    explicit CommandPool(const Device *device);
+    ~CommandPool();
 
-    const VulkanDevice *device() const { return m_device; }
+    const Device *device() const { return m_device; }
     VkDevice deviceHandle() const { return m_device->device(); }
 
     VkCommandPool handle() const { return m_handle; }
 
-    std::unique_ptr<VulkanCommandBuffer> allocateCommandBuffer() const;
+    std::unique_ptr<CommandBuffer> allocateCommandBuffer() const;
 
 private:
-    const VulkanDevice *m_device;
+    const Device *m_device;
     VkCommandPool m_handle;
 };
+
+} // namespace V

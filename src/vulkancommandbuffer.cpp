@@ -5,7 +5,9 @@
 
 #include <stdexcept>
 
-VulkanCommandBuffer::VulkanCommandBuffer(const VulkanCommandPool *commandPool)
+namespace V {
+
+CommandBuffer::CommandBuffer(const CommandPool *commandPool)
     : m_commandPool(commandPool)
 {
     VkCommandBufferAllocateInfo commandBufferAllocateInfo {
@@ -19,13 +21,13 @@ VulkanCommandBuffer::VulkanCommandBuffer(const VulkanCommandPool *commandPool)
         throw std::runtime_error("Failed to allocate command buffer");
 }
 
-VulkanCommandBuffer::~VulkanCommandBuffer()
+CommandBuffer::~CommandBuffer()
 {
     if (m_handle != VK_NULL_HANDLE)
         vkFreeCommandBuffers(m_commandPool->deviceHandle(), m_commandPool->handle(), 1, &m_handle);
 }
 
-void VulkanCommandBuffer::begin() const
+void CommandBuffer::begin() const
 {
     VkCommandBufferBeginInfo commandBufferBeginInfo {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -36,7 +38,7 @@ void VulkanCommandBuffer::begin() const
         throw std::runtime_error("Failed to begin command buffer");
 }
 
-void VulkanCommandBuffer::beginRenderPass(VkRenderPass renderPass, VkFramebuffer framebuffer, VkRect2D renderArea) const
+void CommandBuffer::beginRenderPass(VkRenderPass renderPass, VkFramebuffer framebuffer, VkRect2D renderArea) const
 {
     VkClearValue clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
     VkRenderPassBeginInfo renderPassBeginInfo = {
@@ -50,23 +52,25 @@ void VulkanCommandBuffer::beginRenderPass(VkRenderPass renderPass, VkFramebuffer
     vkCmdBeginRenderPass(m_handle, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 }
 
-void VulkanCommandBuffer::bindPipeline(const VulkanPipeline *pipeline) const
+void CommandBuffer::bindPipeline(const Pipeline *pipeline) const
 {
     vkCmdBindPipeline(m_handle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->handle());
 }
 
-void VulkanCommandBuffer::draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance) const
+void CommandBuffer::draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance) const
 {
     vkCmdDraw(m_handle, vertexCount, instanceCount, firstVertex, firstInstance);
 }
 
-void VulkanCommandBuffer::endRenderPass() const
+void CommandBuffer::endRenderPass() const
 {
     vkCmdEndRenderPass(m_handle);
 }
 
-void VulkanCommandBuffer::end() const
+void CommandBuffer::end() const
 {
     if (vkEndCommandBuffer(m_handle) != VK_SUCCESS)
         throw std::runtime_error("Failed to end command buffer");
 }
+
+} // namespace V

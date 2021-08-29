@@ -4,26 +4,30 @@
 
 #include <vulkan/vulkan.h>
 
-class VulkanDevice;
-class VulkanCommandPool;
-class VulkanPipeline;
+namespace V {
 
-class VulkanCommandBuffer : private NonCopyable
+class Device;
+class CommandPool;
+class Pipeline;
+
+class CommandBuffer : private NonCopyable
 {
 public:
-    VulkanCommandBuffer(const VulkanCommandPool *commandPool);
-    ~VulkanCommandBuffer();
+    CommandBuffer(const CommandPool *commandPool);
+    ~CommandBuffer();
 
     VkCommandBuffer handle() const { return m_handle; }
 
     void begin() const;
     void beginRenderPass(VkRenderPass renderPass, VkFramebuffer framebuffer, VkRect2D renderArea) const;
-    void bindPipeline(const VulkanPipeline *pipeline) const;
+    void bindPipeline(const Pipeline *pipeline) const;
     void draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance) const;
     void endRenderPass() const;
     void end() const;
 
 private:
-    const VulkanCommandPool *m_commandPool;
+    const CommandPool *m_commandPool;
     VkCommandBuffer m_handle;
 };
+
+} // namespace V

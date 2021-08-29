@@ -5,18 +5,22 @@
 
 #include <vulkan/vulkan.h>
 
-class VulkanShaderModule : private NonCopyable
+namespace V {
+
+class ShaderModule : private NonCopyable
 {
 public:
-    explicit VulkanShaderModule(const VulkanDevice *device, const char *spvFilePath);
-    ~VulkanShaderModule();
+    explicit ShaderModule(const Device *device, const char *spvFilePath);
+    ~ShaderModule();
 
-    const VulkanDevice *device() const { return m_device; }
+    const Device *device() const { return m_device; }
     VkDevice deviceHandle() const { return m_device->device(); }
 
     VkShaderModule handle() const { return m_handle; }
 
 private:
-    const VulkanDevice *m_device;
+    const Device *m_device;
     VkShaderModule m_handle = VK_NULL_HANDLE;
 };
+
+} // namespace V

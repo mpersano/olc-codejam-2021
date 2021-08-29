@@ -4,7 +4,9 @@
 
 #include <iostream>
 
-VulkanCommandPool::VulkanCommandPool(const VulkanDevice *device)
+namespace V {
+
+CommandPool::CommandPool(const Device *device)
     : m_device(device)
 {
     VkCommandPoolCreateInfo commandPoolCreateInfo {
@@ -18,13 +20,15 @@ VulkanCommandPool::VulkanCommandPool(const VulkanDevice *device)
     std::cout << "command pool=" << m_handle << '\n';
 }
 
-VulkanCommandPool::~VulkanCommandPool()
+CommandPool::~CommandPool()
 {
     if (m_handle != VK_NULL_HANDLE)
         vkDestroyCommandPool(m_device->device(), m_handle, nullptr);
 }
 
-std::unique_ptr<VulkanCommandBuffer> VulkanCommandPool::allocateCommandBuffer() const
+std::unique_ptr<CommandBuffer> CommandPool::allocateCommandBuffer() const
 {
-    return std::make_unique<VulkanCommandBuffer>(this);
+    return std::make_unique<CommandBuffer>(this);
 }
+
+} // namespace V

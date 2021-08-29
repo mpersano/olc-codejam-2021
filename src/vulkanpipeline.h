@@ -7,26 +7,30 @@
 
 #include <vector>
 
-class VulkanSwapchain;
-class VulkanShaderModule;
+namespace V {
 
-class VulkanPipeline : private NonCopyable
+class Swapchain;
+class ShaderModule;
+
+class Pipeline : private NonCopyable
 {
 public:
-    explicit VulkanPipeline(const VulkanDevice *device);
-    ~VulkanPipeline();
+    explicit Pipeline(const Device *device);
+    ~Pipeline();
 
-    const VulkanDevice *device() const { return m_device; }
+    const Device *device() const { return m_device; }
     VkDevice deviceHandle() const { return m_device->device(); }
 
     VkPipeline handle() const { return m_pipeline; }
 
-    void addShaderStage(VkShaderStageFlagBits stage, VulkanShaderModule *module);
-    void create(const VulkanSwapchain *swapchain);
+    void addShaderStage(VkShaderStageFlagBits stage, ShaderModule *module);
+    void create(const Swapchain *swapchain);
 
 private:
-    const VulkanDevice *m_device;
+    const Device *m_device;
     std::vector<VkPipelineShaderStageCreateInfo> m_shaderStages;
     VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
     VkPipeline m_pipeline = VK_NULL_HANDLE;
 };
+
+} // namespace V

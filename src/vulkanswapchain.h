@@ -6,15 +6,17 @@
 
 #include <vector>
 
-class VulkanDevice;
-class VulkanSurface;
-class VulkanSemaphore;
+namespace V {
 
-class VulkanSwapchain : private NonCopyable
+class Device;
+class Surface;
+class Semaphore;
+
+class Swapchain : private NonCopyable
 {
 public:
-    VulkanSwapchain(const VulkanSurface *surface, int width, int height, int backbufferCount);
-    ~VulkanSwapchain();
+    Swapchain(const Surface *surface, int width, int height, int backbufferCount);
+    ~Swapchain();
 
     uint32_t width() const { return m_width; }
     uint32_t height() const { return m_height; }
@@ -26,8 +28,8 @@ public:
     VkRenderPass renderPass() const { return m_renderPass; }
     const std::vector<VkFramebuffer> &framebuffers() const { return m_framebuffers; }
 
-    uint32_t acquireNextImage(VulkanSemaphore *signalSemaphore) const;
-    void queuePresent(uint32_t imageIndex, VulkanSemaphore *waitSemaphore) const;
+    uint32_t acquireNextImage(Semaphore *signalSemaphore) const;
+    void queuePresent(uint32_t imageIndex, Semaphore *waitSemaphore) const;
 
 private:
     void createSwapchain();
@@ -36,7 +38,7 @@ private:
     void createFramebuffers();
     void cleanup();
 
-    const VulkanSurface *m_surface;
+    const Surface *m_surface;
     uint32_t m_width;
     uint32_t m_height;
     uint32_t m_backbufferCount;
@@ -47,3 +49,5 @@ private:
     VkRenderPass m_renderPass = VK_NULL_HANDLE; // XXX probably doesn't belong here
     std::vector<VkFramebuffer> m_framebuffers; // XXX probably doesn't belong here
 };
+
+} // namespace V
