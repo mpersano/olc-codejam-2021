@@ -1,8 +1,8 @@
-#include "vulkanpipeline.h"
+#include "vpipeline.h"
 
-#include "vulkandevice.h"
-#include "vulkanshadermodule.h"
-#include "vulkanswapchain.h"
+#include "vdevice.h"
+#include "vshadermodule.h"
+#include "vswapchain.h"
 
 #include <iostream>
 #include <stdexcept>

@@ -1,6 +1,6 @@
-#include "vulkancommandpool.h"
+#include "vcommandpool.h"
 
-#include "vulkancommandbuffer.h"
+#include "vcommandbuffer.h"
 
 #include <iostream>
 

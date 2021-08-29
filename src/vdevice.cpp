@@ -1,9 +1,9 @@
-#include "vulkandevice.h"
+#include "vdevice.h"
 
-#include "vulkancommandpool.h"
-#include "vulkansemaphore.h"
-#include "vulkanshadermodule.h"
-#include "vulkansurface.h"
+#include "vcommandpool.h"
+#include "vsemaphore.h"
+#include "vshadermodule.h"
+#include "vsurface.h"
 
 #include <GLFW/glfw3.h>
 

@@ -1,7 +1,7 @@
-#include "vulkansurface.h"
+#include "vsurface.h"
 
-#include "vulkandevice.h"
-#include "vulkanswapchain.h"
+#include "vdevice.h"
+#include "vswapchain.h"
 
 #include <GLFW/glfw3.h>
 

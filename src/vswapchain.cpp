@@ -1,8 +1,8 @@
-#include "vulkanswapchain.h"
+#include "vswapchain.h"
 
-#include "vulkandevice.h"
-#include "vulkansemaphore.h"
-#include "vulkansurface.h"
+#include "vdevice.h"
+#include "vsemaphore.h"
+#include "vsurface.h"
 
 #include <cassert>
 #include <iostream>

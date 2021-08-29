@@ -1,11 +1,11 @@
-#include "vulkancommandbuffer.h"
-#include "vulkancommandpool.h"
-#include "vulkandevice.h"
-#include "vulkanpipeline.h"
-#include "vulkansemaphore.h"
-#include "vulkanshadermodule.h"
-#include "vulkansurface.h"
-#include "vulkanswapchain.h"
+#include "vcommandbuffer.h"
+#include "vcommandpool.h"
+#include "vdevice.h"
+#include "vpipeline.h"
+#include "vsemaphore.h"
+#include "vshadermodule.h"
+#include "vsurface.h"
+#include "vswapchain.h"
 
 #include <GLFW/glfw3.h>
 

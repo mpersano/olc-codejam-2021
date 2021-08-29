@@ -1,7 +1,7 @@
-#include "vulkancommandbuffer.h"
+#include "vcommandbuffer.h"
 
-#include "vulkancommandpool.h"
-#include "vulkanpipeline.h"
+#include "vcommandpool.h"
+#include "vpipeline.h"
 
 #include <stdexcept>
 

@@ -1,4 +1,4 @@
-#include "vulkanshadermodule.h"
+#include "vshadermodule.h"
 
 #include "util.h"
 
