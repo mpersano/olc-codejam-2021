@@ -13,7 +13,7 @@ class VulkanSemaphore;
 class VulkanSwapchain : private NonCopyable
 {
 public:
-    VulkanSwapchain(VulkanDevice *device, VulkanSurface *surface, int width, int height, int backbufferCount);
+    VulkanSwapchain(const VulkanSurface *surface, int width, int height, int backbufferCount);
     ~VulkanSwapchain();
 
     uint32_t width() const { return m_width; }
@@ -36,8 +36,7 @@ private:
     void createFramebuffers();
     void cleanup();
 
-    VulkanDevice *m_device;
-    VulkanSurface *m_surface;
+    const VulkanSurface *m_surface;
     uint32_t m_width;
     uint32_t m_height;
     uint32_t m_backbufferCount;

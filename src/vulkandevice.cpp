@@ -1,5 +1,10 @@
 #include "vulkandevice.h"
 
+#include "vulkancommandpool.h"
+#include "vulkansemaphore.h"
+#include "vulkanshadermodule.h"
+#include "vulkansurface.h"
+
 #include <GLFW/glfw3.h>
 
 #include <algorithm>
@@ -136,4 +141,24 @@ void VulkanDevice::cleanup()
 
     if (m_instance != VK_NULL_HANDLE)
         vkDestroyInstance(m_instance, nullptr);
+}
+
+std::unique_ptr<VulkanSurface> VulkanDevice::createSurface(GLFWwindow *window) const
+{
+    return std::make_unique<VulkanSurface>(this, window);
+}
+
+std::unique_ptr<VulkanSemaphore> VulkanDevice::createSemaphore() const
+{
+    return std::make_unique<VulkanSemaphore>(this);
+}
+
+std::unique_ptr<VulkanCommandPool> VulkanDevice::createCommandPool() const
+{
+    return std::make_unique<VulkanCommandPool>(this);
+}
+
+std::unique_ptr<VulkanShaderModule> VulkanDevice::createShaderModule(const char *spvFilePath) const
+{
+    return std::make_unique<VulkanShaderModule>(this, spvFilePath);
 }

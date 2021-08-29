@@ -1,13 +1,14 @@
 #include "vulkansurface.h"
 
 #include "vulkandevice.h"
+#include "vulkanswapchain.h"
 
 #include <GLFW/glfw3.h>
 
 #include <iostream>
 #include <stdexcept>
 
-VulkanSurface::VulkanSurface(VulkanDevice *device, GLFWwindow *window)
+VulkanSurface::VulkanSurface(const VulkanDevice *device, GLFWwindow *window)
     : m_device(device)
 {
     if (glfwCreateWindowSurface(device->instance(), window, nullptr, &m_handle) != VK_SUCCESS)
@@ -54,4 +55,9 @@ std::vector<VkPresentModeKHR> VulkanSurface::presentModes() const
     vkGetPhysicalDeviceSurfacePresentModesKHR(m_device->physicalDevice(), m_handle, &count, presentModes.data());
 
     return presentModes;
+}
+
+std::unique_ptr<VulkanSwapchain> VulkanSurface::createSwapchain(int width, int height, int backbufferCount) const
+{
+    return std::make_unique<VulkanSwapchain>(this, width, height, backbufferCount);
 }

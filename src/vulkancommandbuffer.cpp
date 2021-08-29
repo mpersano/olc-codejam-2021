@@ -1,14 +1,12 @@
 #include "vulkancommandbuffer.h"
 
 #include "vulkancommandpool.h"
-#include "vulkandevice.h"
 #include "vulkanpipeline.h"
 
 #include <stdexcept>
 
-VulkanCommandBuffer::VulkanCommandBuffer(VulkanDevice *device, VulkanCommandPool *commandPool)
-    : m_device(device)
-    , m_commandPool(commandPool)
+VulkanCommandBuffer::VulkanCommandBuffer(const VulkanCommandPool *commandPool)
+    : m_commandPool(commandPool)
 {
     VkCommandBufferAllocateInfo commandBufferAllocateInfo {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -17,14 +15,14 @@ VulkanCommandBuffer::VulkanCommandBuffer(VulkanDevice *device, VulkanCommandPool
         .commandBufferCount = 1
     };
 
-    if (vkAllocateCommandBuffers(m_device->device(), &commandBufferAllocateInfo, &m_handle) != VK_SUCCESS)
+    if (vkAllocateCommandBuffers(m_commandPool->deviceHandle(), &commandBufferAllocateInfo, &m_handle) != VK_SUCCESS)
         throw std::runtime_error("Failed to allocate command buffer");
 }
 
 VulkanCommandBuffer::~VulkanCommandBuffer()
 {
     if (m_handle != VK_NULL_HANDLE)
-        vkFreeCommandBuffers(m_device->device(), m_commandPool->handle(), 1, &m_handle);
+        vkFreeCommandBuffers(m_commandPool->deviceHandle(), m_commandPool->handle(), 1, &m_handle);
 }
 
 void VulkanCommandBuffer::begin() const
@@ -52,9 +50,9 @@ void VulkanCommandBuffer::beginRenderPass(VkRenderPass renderPass, VkFramebuffer
     vkCmdBeginRenderPass(m_handle, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 }
 
-void VulkanCommandBuffer::bindPipeline(VulkanPipeline *pipeline) const
+void VulkanCommandBuffer::bindPipeline(const VulkanPipeline *pipeline) const
 {
-    vkCmdBindPipeline(m_handle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipeline());
+    vkCmdBindPipeline(m_handle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->handle());
 }
 
 void VulkanCommandBuffer::draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance) const

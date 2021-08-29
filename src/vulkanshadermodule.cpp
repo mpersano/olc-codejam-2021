@@ -1,11 +1,10 @@
 #include "vulkanshadermodule.h"
 
 #include "util.h"
-#include "vulkandevice.h"
 
 #include <stdexcept>
 
-VulkanShaderModule::VulkanShaderModule(VulkanDevice *device, const char *spvFilePath)
+VulkanShaderModule::VulkanShaderModule(const VulkanDevice *device, const char *spvFilePath)
     : m_device(device)
 {
     const auto shaderCode = readFile(spvFilePath);

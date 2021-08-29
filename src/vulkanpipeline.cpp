@@ -7,9 +7,8 @@
 #include <iostream>
 #include <stdexcept>
 
-VulkanPipeline::VulkanPipeline(VulkanDevice *device, VulkanSwapchain *swapchain)
+VulkanPipeline::VulkanPipeline(const VulkanDevice *device)
     : m_device(device)
-    , m_swapchain(swapchain)
 {
 }
 
@@ -33,7 +32,7 @@ void VulkanPipeline::addShaderStage(VkShaderStageFlagBits stage, VulkanShaderMod
     m_shaderStages.push_back(shaderStage);
 }
 
-void VulkanPipeline::create()
+void VulkanPipeline::create(const VulkanSwapchain *swapchain)
 {
     VkPipelineVertexInputStateCreateInfo vertexInputState = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
@@ -46,14 +45,14 @@ void VulkanPipeline::create()
     VkViewport viewport = {
         .x = 0.0f,
         .y = 0.0f,
-        .width = static_cast<float>(m_swapchain->width()),
-        .height = static_cast<float>(m_swapchain->height()),
+        .width = static_cast<float>(swapchain->width()),
+        .height = static_cast<float>(swapchain->height()),
         .minDepth = 0.0f,
         .maxDepth = 1.0f,
     };
     VkRect2D scissor = {
         .offset = VkOffset2D { 0, 0 },
-        .extent = VkExtent2D { m_swapchain->width(), m_swapchain->height() },
+        .extent = VkExtent2D { swapchain->width(), swapchain->height() },
     };
     VkPipelineViewportStateCreateInfo viewportState = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
@@ -126,7 +125,7 @@ void VulkanPipeline::create()
         .pColorBlendState = &colorBlendState,
         .pDynamicState = nullptr,
         .layout = m_pipelineLayout,
-        .renderPass = m_swapchain->renderPass(),
+        .renderPass = swapchain->renderPass(),
         .subpass = 0,
         .basePipelineHandle = VK_NULL_HANDLE,
         .basePipelineIndex = -1

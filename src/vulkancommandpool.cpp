@@ -1,10 +1,10 @@
 #include "vulkancommandpool.h"
 
-#include "vulkandevice.h"
+#include "vulkancommandbuffer.h"
 
 #include <iostream>
 
-VulkanCommandPool::VulkanCommandPool(VulkanDevice *device)
+VulkanCommandPool::VulkanCommandPool(const VulkanDevice *device)
     : m_device(device)
 {
     VkCommandPoolCreateInfo commandPoolCreateInfo {
@@ -22,4 +22,9 @@ VulkanCommandPool::~VulkanCommandPool()
 {
     if (m_handle != VK_NULL_HANDLE)
         vkDestroyCommandPool(m_device->device(), m_handle, nullptr);
+}
+
+std::unique_ptr<VulkanCommandBuffer> VulkanCommandPool::allocateCommandBuffer() const
+{
+    return std::make_unique<VulkanCommandBuffer>(this);
 }

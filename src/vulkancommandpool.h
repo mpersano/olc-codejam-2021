@@ -1,20 +1,28 @@
 #pragma once
 
 #include "noncopyable.h"
+#include "vulkandevice.h"
 
 #include <vulkan/vulkan.h>
 
-class VulkanDevice;
+#include <memory>
+
+class VulkanCommandBuffer;
 
 class VulkanCommandPool : private NonCopyable
 {
 public:
-    explicit VulkanCommandPool(VulkanDevice *device);
+    explicit VulkanCommandPool(const VulkanDevice *device);
     ~VulkanCommandPool();
+
+    const VulkanDevice *device() const { return m_device; }
+    VkDevice deviceHandle() const { return m_device->device(); }
 
     VkCommandPool handle() const { return m_handle; }
 
+    std::unique_ptr<VulkanCommandBuffer> allocateCommandBuffer() const;
+
 private:
-    VulkanDevice *m_device;
+    const VulkanDevice *m_device;
     VkCommandPool m_handle;
 };

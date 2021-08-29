@@ -41,18 +41,18 @@ private:
 VulkanRenderer::VulkanRenderer(GLFWwindow *window, int width, int height)
     : m_window(window)
     , m_device(new VulkanDevice)
-    , m_surface(new VulkanSurface(m_device.get(), window))
-    , m_swapchain(new VulkanSwapchain(m_device.get(), m_surface.get(), width, height, 3))
-    , m_vertexShaderModule(new VulkanShaderModule(m_device.get(), "vert.spv"))
-    , m_fragmentShaderModule(new VulkanShaderModule(m_device.get(), "frag.spv"))
-    , m_pipeline(new VulkanPipeline(m_device.get(), m_swapchain.get()))
-    , m_commandPool(new VulkanCommandPool(m_device.get()))
-    , m_imageAvailableSemaphore(new VulkanSemaphore(m_device.get()))
-    , m_renderFinishedSemaphore(new VulkanSemaphore(m_device.get()))
+    , m_surface(m_device->createSurface(window))
+    , m_swapchain(m_surface->createSwapchain(width, height, 3))
+    , m_vertexShaderModule(m_device->createShaderModule("vert.spv"))
+    , m_fragmentShaderModule(m_device->createShaderModule("frag.spv"))
+    , m_pipeline(new VulkanPipeline(m_device.get()))
+    , m_commandPool(m_device->createCommandPool())
+    , m_imageAvailableSemaphore(m_device->createSemaphore())
+    , m_renderFinishedSemaphore(m_device->createSemaphore())
 {
     m_pipeline->addShaderStage(VK_SHADER_STAGE_VERTEX_BIT, m_vertexShaderModule.get());
     m_pipeline->addShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, m_fragmentShaderModule.get());
-    m_pipeline->create();
+    m_pipeline->create(m_swapchain.get());
 
     const auto renderPass = m_swapchain->renderPass();
     const auto &framebuffers = m_swapchain->framebuffers();
@@ -62,7 +62,7 @@ VulkanRenderer::VulkanRenderer(GLFWwindow *window, int width, int height)
         .extent = VkExtent2D { m_swapchain->width(), m_swapchain->height() }
     };
     for (size_t i = 0; i < framebuffers.size(); ++i) {
-        auto commandBuffer = std::make_unique<VulkanCommandBuffer>(m_device.get(), m_commandPool.get());
+        auto commandBuffer = m_commandPool->allocateCommandBuffer();
         commandBuffer->begin();
         commandBuffer->beginRenderPass(renderPass, framebuffers[i], renderArea);
         commandBuffer->bindPipeline(m_pipeline.get());

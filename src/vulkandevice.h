@@ -4,6 +4,15 @@
 
 #include <vulkan/vulkan.h>
 
+#include <memory>
+
+struct GLFWwindow;
+
+class VulkanSurface;
+class VulkanCommandPool;
+class VulkanShaderModule;
+class VulkanSemaphore;
+
 class VulkanDevice : private NonCopyable
 {
 public:
@@ -15,6 +24,11 @@ public:
     uint32_t queueFamilyIndex() const { return m_queueFamilyIndex; }
     VkDevice device() const { return m_device; }
     VkQueue queue() const { return m_queue; }
+
+    std::unique_ptr<VulkanSurface> createSurface(GLFWwindow *window) const;
+    std::unique_ptr<VulkanSemaphore> createSemaphore() const;
+    std::unique_ptr<VulkanCommandPool> createCommandPool() const;
+    std::unique_ptr<VulkanShaderModule> createShaderModule(const char *spvFilePath) const;
 
 private:
     void createInstance();

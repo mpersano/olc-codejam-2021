@@ -1,29 +1,31 @@
 #pragma once
 
 #include "noncopyable.h"
+#include "vulkandevice.h"
 
 #include <vulkan/vulkan.h>
 
 #include <vector>
 
-class VulkanDevice;
 class VulkanSwapchain;
 class VulkanShaderModule;
 
 class VulkanPipeline : private NonCopyable
 {
 public:
-    VulkanPipeline(VulkanDevice *device, VulkanSwapchain *swapchain);
+    explicit VulkanPipeline(const VulkanDevice *device);
     ~VulkanPipeline();
 
-    VkPipeline pipeline() const { return m_pipeline; }
+    const VulkanDevice *device() const { return m_device; }
+    VkDevice deviceHandle() const { return m_device->device(); }
+
+    VkPipeline handle() const { return m_pipeline; }
 
     void addShaderStage(VkShaderStageFlagBits stage, VulkanShaderModule *module);
-    void create();
+    void create(const VulkanSwapchain *swapchain);
 
 private:
-    VulkanDevice *m_device;
-    VulkanSwapchain *m_swapchain;
+    const VulkanDevice *m_device;
     std::vector<VkPipelineShaderStageCreateInfo> m_shaderStages;
     VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
     VkPipeline m_pipeline = VK_NULL_HANDLE;

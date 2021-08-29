@@ -1,10 +1,8 @@
 #include "vulkansemaphore.h"
 
-#include "vulkandevice.h"
-
 #include <stdexcept>
 
-VulkanSemaphore::VulkanSemaphore(VulkanDevice *device)
+VulkanSemaphore::VulkanSemaphore(const VulkanDevice *device)
     : m_device(device)
 {
     VkSemaphoreCreateInfo semaphoreCreateInfo = {

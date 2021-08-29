@@ -8,9 +8,8 @@
 #include <iostream>
 #include <iterator>
 
-VulkanSwapchain::VulkanSwapchain(VulkanDevice *device, VulkanSurface *surface, int width, int height, int backbufferCount)
-    : m_device(device)
-    , m_surface(surface)
+VulkanSwapchain::VulkanSwapchain(const VulkanSurface *surface, int width, int height, int backbufferCount)
+    : m_surface(surface)
     , m_width(width)
     , m_height(height)
     , m_backbufferCount(backbufferCount)
@@ -73,7 +72,7 @@ void VulkanSwapchain::createSwapchain()
         .oldSwapchain = VK_NULL_HANDLE
     };
 
-    if (vkCreateSwapchainKHR(m_device->device(), &swapchainCreateInfo, nullptr, &m_swapchain) != VK_SUCCESS)
+    if (vkCreateSwapchainKHR(m_surface->deviceHandle(), &swapchainCreateInfo, nullptr, &m_swapchain) != VK_SUCCESS)
         throw std::runtime_error("Failed to create swapchain");
 
     std::cout << "swapchain=" << m_swapchain << '\n';
@@ -81,10 +80,10 @@ void VulkanSwapchain::createSwapchain()
     // get image handles
 
     uint32_t imageCount;
-    vkGetSwapchainImagesKHR(m_device->device(), m_swapchain, &imageCount, nullptr);
+    vkGetSwapchainImagesKHR(m_surface->deviceHandle(), m_swapchain, &imageCount, nullptr);
     assert(imageCount == m_backbufferCount);
     m_images.resize(imageCount);
-    vkGetSwapchainImagesKHR(m_device->device(), m_swapchain, &imageCount, m_images.data());
+    vkGetSwapchainImagesKHR(m_surface->deviceHandle(), m_swapchain, &imageCount, m_images.data());
 }
 
 void VulkanSwapchain::createImageViews()
@@ -104,7 +103,7 @@ void VulkanSwapchain::createImageViews()
                     .layerCount = 1,
             }
         };
-        if (vkCreateImageView(m_device->device(), &imageViewCreateInfo, nullptr, &m_imageViews[i]) != VK_SUCCESS)
+        if (vkCreateImageView(m_surface->deviceHandle(), &imageViewCreateInfo, nullptr, &m_imageViews[i]) != VK_SUCCESS)
             throw std::runtime_error("Failed to create image view");
     }
 
@@ -145,7 +144,7 @@ void VulkanSwapchain::createRenderPass()
         .pSubpasses = &subpassDescription,
     };
 
-    if (vkCreateRenderPass(m_device->device(), &renderPassCreateInfo, nullptr, &m_renderPass) != VK_SUCCESS)
+    if (vkCreateRenderPass(m_surface->deviceHandle(), &renderPassCreateInfo, nullptr, &m_renderPass) != VK_SUCCESS)
         throw std::runtime_error("Failed to create render pass");
 
     std::cout << "render pass=" << m_renderPass << '\n';
@@ -167,7 +166,7 @@ void VulkanSwapchain::createFramebuffers()
             .layers = 1
         };
 
-        if (vkCreateFramebuffer(m_device->device(), &framebufferCreateInfo, nullptr, &m_framebuffers[i]) != VK_SUCCESS)
+        if (vkCreateFramebuffer(m_surface->deviceHandle(), &framebufferCreateInfo, nullptr, &m_framebuffers[i]) != VK_SUCCESS)
             throw std::runtime_error("Failed to create framebuffer");
     }
 
@@ -180,25 +179,25 @@ void VulkanSwapchain::cleanup()
 {
     for (auto framebuffer : m_framebuffers) {
         if (framebuffer != VK_NULL_HANDLE)
-            vkDestroyFramebuffer(m_device->device(), framebuffer, nullptr);
+            vkDestroyFramebuffer(m_surface->deviceHandle(), framebuffer, nullptr);
     }
 
     if (m_renderPass != VK_NULL_HANDLE)
-        vkDestroyRenderPass(m_device->device(), m_renderPass, nullptr);
+        vkDestroyRenderPass(m_surface->deviceHandle(), m_renderPass, nullptr);
 
     for (auto imageView : m_imageViews) {
         if (imageView != VK_NULL_HANDLE)
-            vkDestroyImageView(m_device->device(), imageView, nullptr);
+            vkDestroyImageView(m_surface->deviceHandle(), imageView, nullptr);
     }
 
     if (m_swapchain != VK_NULL_HANDLE)
-        vkDestroySwapchainKHR(m_device->device(), m_swapchain, nullptr);
+        vkDestroySwapchainKHR(m_surface->deviceHandle(), m_swapchain, nullptr);
 }
 
 uint32_t VulkanSwapchain::acquireNextImage(VulkanSemaphore *semaphore) const
 {
     uint32_t imageIndex;
-    VkResult result = vkAcquireNextImageKHR(m_device->device(), m_swapchain, UINT64_MAX, semaphore->handle(), VK_NULL_HANDLE, &imageIndex);
+    VkResult result = vkAcquireNextImageKHR(m_surface->deviceHandle(), m_swapchain, UINT64_MAX, semaphore->handle(), VK_NULL_HANDLE, &imageIndex);
     if (result != VK_SUCCESS) {
         // TODO handle swapchain re-creation
         throw std::runtime_error("Failed to acquire image");
@@ -217,5 +216,9 @@ void VulkanSwapchain::queuePresent(uint32_t imageIndex, VulkanSemaphore *semapho
         .pSwapchains = &m_swapchain,
         .pImageIndices = &imageIndex
     };
-    vkQueuePresentKHR(m_device->queue(), &presentInfo);
+    VkResult result = vkQueuePresentKHR(m_surface->device()->queue(), &presentInfo);
+    if (result != VK_SUCCESS) {
+        // TODO handle swapchain re-creation
+        throw std::runtime_error("Failed to queue image for presentation");
+    }
 }
