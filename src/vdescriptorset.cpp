@@ -21,11 +21,11 @@ DescriptorSet::DescriptorSet(const DescriptorPool *descriptorPool, const Descrip
         throw std::runtime_error("Failed to allocate descriptor sets");
 }
 
-DescriptorSet::~DescriptorSet() = default; // automatically freed by the pool
+DescriptorSet::~DescriptorSet() = default; // descriptor set is automatically freed by the pool
 
 void DescriptorSet::writeBuffer(uint32_t binding, const Buffer *buffer) const
 {
-    VkDescriptorBufferInfo inputDescriptorBufferInfo = {
+    VkDescriptorBufferInfo bufferInfo = {
         .buffer = buffer->handle(),
         .offset = 0,
         .range = VK_WHOLE_SIZE
@@ -37,7 +37,7 @@ void DescriptorSet::writeBuffer(uint32_t binding, const Buffer *buffer) const
         .dstBinding = binding,
         .descriptorCount = 1,
         .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-        .pBufferInfo = &inputDescriptorBufferInfo
+        .pBufferInfo = &bufferInfo
     };
 
     vkUpdateDescriptorSets(m_descriptorPool->deviceHandle(), 1, &writeDescriptorSet, 0, nullptr);

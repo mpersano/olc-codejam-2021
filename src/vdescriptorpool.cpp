@@ -9,7 +9,7 @@ DescriptorPoolBuilder::DescriptorPoolBuilder(const Device *device)
 {
 }
 
-DescriptorPoolBuilder &DescriptorPoolBuilder::addDescriptor(VkDescriptorType type, uint32_t count)
+DescriptorPoolBuilder &DescriptorPoolBuilder::add(VkDescriptorType type, uint32_t count)
 {
     VkDescriptorPoolSize poolSize = {
         .type = type,

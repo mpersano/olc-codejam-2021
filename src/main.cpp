@@ -94,7 +94,7 @@ VulkanRenderer::VulkanRenderer(GLFWwindow *window, int width, int height)
                                     .create();
 
     m_descriptorPool = m_device->descriptorPoolBuilder()
-                               .addDescriptor(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 2)
+                               .add(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 2)
                                .create();
 
     m_descriptorSet = m_descriptorPool->allocateDescriptorSet(m_descriptorSetLayout.get());

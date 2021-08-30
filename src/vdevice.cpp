@@ -69,9 +69,9 @@ void Device::createInstance()
         .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
         .pApplicationInfo = &applicationInfo,
         .enabledLayerCount = static_cast<uint32_t>(layers.size()),
-        .ppEnabledLayerNames = layers.data(),
+        .ppEnabledLayerNames = layers.empty() ? nullptr : layers.data(),
         .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
-        .ppEnabledExtensionNames = extensions.data()
+        .ppEnabledExtensionNames = extensions.empty() ? nullptr : extensions.data()
     };
 
     if (vkCreateInstance(&instanceCreateInfo, nullptr, &m_instance) != VK_SUCCESS)
@@ -125,7 +125,7 @@ void Device::createDeviceAndQueue()
         .queueCreateInfoCount = 1,
         .pQueueCreateInfos = &deviceQueueCreateInfo,
         .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
-        .ppEnabledExtensionNames = extensions.data()
+        .ppEnabledExtensionNames = extensions.empty() ? nullptr : extensions.data()
     };
 
     if (vkCreateDevice(m_physicalDevice, &deviceCreateInfo, nullptr, &m_device) != VK_SUCCESS)

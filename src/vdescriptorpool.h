@@ -15,7 +15,7 @@ class DescriptorPoolBuilder
 public:
     explicit DescriptorPoolBuilder(const Device *device);
 
-    DescriptorPoolBuilder &addDescriptor(VkDescriptorType type, uint32_t count);
+    DescriptorPoolBuilder &add(VkDescriptorType type, uint32_t count);
 
     std::unique_ptr<DescriptorPool> create() const;
 
