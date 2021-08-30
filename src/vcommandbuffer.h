@@ -6,9 +6,10 @@
 
 namespace V {
 
-class Device;
 class CommandPool;
 class Pipeline;
+class DescriptorSet;
+class PipelineLayout;
 
 class CommandBuffer : private NonCopyable
 {
@@ -21,6 +22,7 @@ public:
     void begin() const;
     void beginRenderPass(VkRenderPass renderPass, VkFramebuffer framebuffer, VkRect2D renderArea) const;
     void bindPipeline(const Pipeline *pipeline) const;
+    void bindDescriptorSet(const PipelineLayout *pipelineLayout, const DescriptorSet *descriptorSet) const;
     void draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance) const;
     void endRenderPass() const;
     void end() const;

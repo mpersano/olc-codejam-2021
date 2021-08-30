@@ -15,8 +15,8 @@ class PipelineBuilder
 public:
     explicit PipelineBuilder(const Device *device);
 
-    void setViewport(uint32_t width, uint32_t height);
-    void addShaderStage(VkShaderStageFlagBits stage, ShaderModule *module);
+    PipelineBuilder &setViewport(uint32_t width, uint32_t height);
+    PipelineBuilder &addShaderStage(VkShaderStageFlagBits stage, ShaderModule *module);
 
     std::unique_ptr<Pipeline> create(const PipelineLayout *layout, VkRenderPass renderPass) const;
 

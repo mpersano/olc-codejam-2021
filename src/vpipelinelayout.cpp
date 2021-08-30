@@ -1,20 +1,36 @@
 #include "vpipelinelayout.h"
 
+#include "vdescriptorsetlayout.h"
+
 #include <stdexcept>
 
 namespace V {
 
-PipelineLayout::PipelineLayout(const Device *device)
+PipelineLayoutBuilder::PipelineLayoutBuilder(const Device *device)
     : m_device(device)
 {
-    VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {
+}
+
+PipelineLayoutBuilder &PipelineLayoutBuilder::addSetLayout(const DescriptorSetLayout *setLayout)
+{
+    m_setLayouts.push_back(setLayout->handle());
+    return *this;
+}
+
+std::unique_ptr<PipelineLayout> PipelineLayoutBuilder::create() const
+{
+    VkPipelineLayoutCreateInfo createInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-        .setLayoutCount = 0,
-        .pSetLayouts = nullptr,
-        .pushConstantRangeCount = 0,
-        .pPushConstantRanges = nullptr,
+        .setLayoutCount = static_cast<uint32_t>(m_setLayouts.size()),
+        .pSetLayouts = m_setLayouts.empty() ? nullptr : m_setLayouts.data(),
     };
-    if (vkCreatePipelineLayout(m_device->device(), &pipelineLayoutCreateInfo, nullptr, &m_handle) != VK_SUCCESS)
+    return std::make_unique<PipelineLayout>(m_device, createInfo);
+}
+
+PipelineLayout::PipelineLayout(const Device *device, const VkPipelineLayoutCreateInfo &createInfo)
+    : m_device(device)
+{
+    if (vkCreatePipelineLayout(m_device->device(), &createInfo, nullptr, &m_handle) != VK_SUCCESS)
         throw std::runtime_error("Failed to create pipeline layout");
 }
 

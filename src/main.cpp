@@ -1,6 +1,11 @@
+#include "vbuffer.h"
 #include "vcommandbuffer.h"
 #include "vcommandpool.h"
+#include "vdescriptorpool.h"
+#include "vdescriptorset.h"
+#include "vdescriptorsetlayout.h"
 #include "vdevice.h"
+#include "vmemory.h"
 #include "vpipeline.h"
 #include "vpipelinelayout.h"
 #include "vsemaphore.h"
@@ -37,6 +42,12 @@ private:
     std::unique_ptr<V::CommandPool> m_commandPool;
     std::unique_ptr<V::Semaphore> m_imageAvailableSemaphore;
     std::unique_ptr<V::Semaphore> m_renderFinishedSemaphore;
+    std::unique_ptr<V::Memory> m_memory;
+    std::unique_ptr<V::Buffer> m_positionBuffer;
+    std::unique_ptr<V::Buffer> m_colorBuffer;
+    std::unique_ptr<V::DescriptorSetLayout> m_descriptorSetLayout;
+    std::unique_ptr<V::DescriptorPool> m_descriptorPool;
+    std::unique_ptr<V::DescriptorSet> m_descriptorSet;
     std::vector<std::unique_ptr<V::CommandBuffer>> m_commandBuffers;
 };
 
@@ -47,16 +58,56 @@ VulkanRenderer::VulkanRenderer(GLFWwindow *window, int width, int height)
     , m_swapchain(m_surface->createSwapchain(width, height, 3))
     , m_vertexShaderModule(m_device->createShaderModule("vert.spv"))
     , m_fragmentShaderModule(m_device->createShaderModule("frag.spv"))
-    , m_pipelineLayout(m_device->createPipelineLayout())
     , m_commandPool(m_device->createCommandPool())
     , m_imageAvailableSemaphore(m_device->createSemaphore())
     , m_renderFinishedSemaphore(m_device->createSemaphore())
+    , m_memory(m_device->allocateMemory(1024))
+    , m_positionBuffer(m_device->createBuffer(512))
+    , m_colorBuffer(m_device->createBuffer(512))
 {
-    auto pipelineBuilder = m_device->pipelineBuilder();
-    pipelineBuilder.setViewport(m_swapchain->width(), m_swapchain->height());
-    pipelineBuilder.addShaderStage(VK_SHADER_STAGE_VERTEX_BIT, m_vertexShaderModule.get());
-    pipelineBuilder.addShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, m_fragmentShaderModule.get());
-    m_pipeline = pipelineBuilder.create(m_pipelineLayout.get(), m_swapchain->renderPass());
+    m_positionBuffer->bindMemory(m_memory.get(), 0);
+    m_colorBuffer->bindMemory(m_memory.get(), 512);
+
+    {
+        float *buffer = m_memory->map<float>();
+
+        float *positions = buffer;
+        // clang-format off
+        positions[ 0] =  0.0; positions[ 1]  = -0.5; positions[ 2] = 0.0; positions[ 3] = 1.0;
+        positions[ 4] =  0.5; positions[ 5]  =  0.5; positions[ 6] = 0.0; positions[ 7] = 1.0;
+        positions[ 8] = -0.5; positions[ 9]  =  0.5; positions[10] = 0.0; positions[11] = 1.0;
+        // clang-format on
+
+        float *colors = &buffer[512 / sizeof(float)];
+        // clang-format off
+        colors[ 0] = 1.0; colors[ 1]  = 0.0; colors[ 2] = 0.0; colors[ 3] = 1.0;
+        colors[ 4] = 1.0; colors[ 5]  = 1.0; colors[ 6] = 0.0; colors[ 7] = 1.0;
+        colors[ 8] = 1.0; colors[ 9]  = 0.0; colors[10] = 1.0; colors[11] = 1.0;
+        // clang-format on
+
+        m_memory->unmap();
+    }
+
+    m_descriptorSetLayout = m_device->descriptorSetLayoutBuilder()
+                                    .addBinding(0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)
+                                    .addBinding(1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)
+                                    .create();
+
+    m_descriptorPool = m_device->descriptorPoolBuilder()
+                               .addDescriptor(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 2)
+                               .create();
+
+    m_descriptorSet = m_descriptorPool->allocateDescriptorSet(m_descriptorSetLayout.get());
+    m_descriptorSet->writeBuffer(0, m_positionBuffer.get());
+    m_descriptorSet->writeBuffer(1, m_colorBuffer.get());
+
+    m_pipelineLayout = m_device->pipelineLayoutBuilder().addSetLayout(m_descriptorSetLayout.get()).create();
+
+    m_pipeline = m_device->pipelineBuilder()
+                         .setViewport(m_swapchain->width(), m_swapchain->height())
+                         .addShaderStage(VK_SHADER_STAGE_VERTEX_BIT, m_vertexShaderModule.get())
+                         .addShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, m_fragmentShaderModule.get())
+                         .create(m_pipelineLayout.get(), m_swapchain->renderPass());
 
     const auto renderPass = m_swapchain->renderPass();
     const auto &framebuffers = m_swapchain->framebuffers();
@@ -70,6 +121,7 @@ VulkanRenderer::VulkanRenderer(GLFWwindow *window, int width, int height)
         commandBuffer->begin();
         commandBuffer->beginRenderPass(renderPass, framebuffers[i], renderArea);
         commandBuffer->bindPipeline(m_pipeline.get());
+        commandBuffer->bindDescriptorSet(m_pipelineLayout.get(), m_descriptorSet.get());
         commandBuffer->draw(3, 1, 0, 0);
         commandBuffer->endRenderPass();
         commandBuffer->end();
@@ -102,6 +154,8 @@ void VulkanRenderer::render() const
         throw std::runtime_error("Failed to submit command");
 
     m_swapchain->queuePresent(imageIndex, m_renderFinishedSemaphore.get());
+
+    vkQueueWaitIdle(m_device->queue()); // FIXME
 }
 
 class Demo

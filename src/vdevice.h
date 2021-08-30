@@ -14,8 +14,12 @@ class Surface;
 class CommandPool;
 class ShaderModule;
 class Semaphore;
+class PipelineLayoutBuilder;
 class PipelineBuilder;
-class PipelineLayout;
+class Memory;
+class Buffer;
+class DescriptorSetLayoutBuilder;
+class DescriptorPoolBuilder;
 
 class Device : private NonCopyable
 {
@@ -33,8 +37,12 @@ public:
     std::unique_ptr<Semaphore> createSemaphore() const;
     std::unique_ptr<CommandPool> createCommandPool() const;
     std::unique_ptr<ShaderModule> createShaderModule(const char *spvFilePath) const;
-    std::unique_ptr<PipelineLayout> createPipelineLayout() const;
+    PipelineLayoutBuilder pipelineLayoutBuilder() const;
     PipelineBuilder pipelineBuilder() const;
+    std::unique_ptr<Memory> allocateMemory(VkDeviceSize size) const;
+    std::unique_ptr<Buffer> createBuffer(VkDeviceSize size) const;
+    DescriptorSetLayoutBuilder descriptorSetLayoutBuilder() const;
+    DescriptorPoolBuilder descriptorPoolBuilder() const;
 
 private:
     void createInstance();

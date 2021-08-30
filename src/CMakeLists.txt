@@ -21,6 +21,16 @@ add_executable(game
     vcommandbuffer.h
     vsemaphore.cpp
     vsemaphore.h
+    vmemory.cpp
+    vmemory.h
+    vbuffer.cpp
+    vbuffer.h
+    vdescriptorsetlayout.cpp
+    vdescriptorsetlayout.h
+    vdescriptorpool.cpp
+    vdescriptorpool.h
+    vdescriptorset.cpp
+    vdescriptorset.h
     util.cpp
     util.h
 )

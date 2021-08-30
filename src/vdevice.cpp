@@ -1,6 +1,10 @@
 #include "vdevice.h"
 
+#include "vbuffer.h"
 #include "vcommandpool.h"
+#include "vdescriptorpool.h"
+#include "vdescriptorsetlayout.h"
+#include "vmemory.h"
 #include "vpipeline.h"
 #include "vpipelinelayout.h"
 #include "vsemaphore.h"
@@ -159,14 +163,54 @@ std::unique_ptr<ShaderModule> Device::createShaderModule(const char *spvFilePath
     return std::make_unique<ShaderModule>(this, spvFilePath);
 }
 
-std::unique_ptr<PipelineLayout> Device::createPipelineLayout() const
+PipelineLayoutBuilder Device::pipelineLayoutBuilder() const
 {
-    return std::make_unique<PipelineLayout>(this);
+    return PipelineLayoutBuilder(this);
 }
 
 PipelineBuilder Device::pipelineBuilder() const
 {
     return PipelineBuilder(this);
+}
+
+std::unique_ptr<Memory> Device::allocateMemory(VkDeviceSize size) const
+{
+    const int memoryTypeIndex = [this, size]() -> int {
+        VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
+        vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &physicalDeviceMemoryProperties);
+        for (uint32_t i = 0; i < physicalDeviceMemoryProperties.memoryTypeCount; ++i) {
+            const VkMemoryType &memoryType = physicalDeviceMemoryProperties.memoryTypes[i];
+            const VkMemoryHeap &memoryHeap = physicalDeviceMemoryProperties.memoryHeaps[memoryType.heapIndex];
+            const auto propertyFlags = memoryType.propertyFlags;
+            if ((propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) && (propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) &&
+                memoryHeap.size >= size) {
+                return i;
+            }
+        }
+        return -1;
+    }();
+
+    VkMemoryAllocateInfo memoryAllocateInfo {
+        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+        .allocationSize = size,
+        .memoryTypeIndex = static_cast<uint32_t>(memoryTypeIndex)
+    };
+    return std::make_unique<Memory>(this, memoryAllocateInfo);
+}
+
+std::unique_ptr<Buffer> Device::createBuffer(VkDeviceSize size) const
+{
+    return std::make_unique<Buffer>(this, size);
+}
+
+DescriptorSetLayoutBuilder Device::descriptorSetLayoutBuilder() const
+{
+    return DescriptorSetLayoutBuilder(this);
+}
+
+DescriptorPoolBuilder Device::descriptorPoolBuilder() const
+{
+    return DescriptorPoolBuilder(this);
 }
 
 } // namespace V

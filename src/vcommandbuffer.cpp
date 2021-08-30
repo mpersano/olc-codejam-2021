@@ -1,7 +1,9 @@
 #include "vcommandbuffer.h"
 
 #include "vcommandpool.h"
+#include "vdescriptorset.h"
 #include "vpipeline.h"
+#include "vpipelinelayout.h"
 
 #include <stdexcept>
 
@@ -55,6 +57,12 @@ void CommandBuffer::beginRenderPass(VkRenderPass renderPass, VkFramebuffer frame
 void CommandBuffer::bindPipeline(const Pipeline *pipeline) const
 {
     vkCmdBindPipeline(m_handle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->handle());
+}
+
+void CommandBuffer::bindDescriptorSet(const PipelineLayout *pipelineLayout, const DescriptorSet *descriptorSet) const
+{
+    VkDescriptorSet descriptorSetHandle = descriptorSet->handle();
+    vkCmdBindDescriptorSets(m_handle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout->handle(), 0, 1, &descriptorSetHandle, 0, nullptr);
 }
 
 void CommandBuffer::draw(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance) const

@@ -14,7 +14,7 @@ PipelineBuilder::PipelineBuilder(const Device *device)
 {
 }
 
-void PipelineBuilder::setViewport(uint32_t width, uint32_t height)
+PipelineBuilder &PipelineBuilder::setViewport(uint32_t width, uint32_t height)
 {
     m_viewport = VkViewport {
         .x = 0.0f,
@@ -28,9 +28,10 @@ void PipelineBuilder::setViewport(uint32_t width, uint32_t height)
         .offset = VkOffset2D { 0, 0 },
         .extent = VkExtent2D { width, height },
     };
+    return *this;
 }
 
-void PipelineBuilder::addShaderStage(VkShaderStageFlagBits stage, ShaderModule *module)
+PipelineBuilder &PipelineBuilder::addShaderStage(VkShaderStageFlagBits stage, ShaderModule *module)
 {
     VkPipelineShaderStageCreateInfo shaderStage = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -39,6 +40,7 @@ void PipelineBuilder::addShaderStage(VkShaderStageFlagBits stage, ShaderModule *
         .pName = "main",
     };
     m_shaderStages.push_back(shaderStage);
+    return *this;
 }
 
 std::unique_ptr<Pipeline> PipelineBuilder::create(const PipelineLayout *layout, VkRenderPass renderPass) const
@@ -101,7 +103,7 @@ std::unique_ptr<Pipeline> PipelineBuilder::create(const PipelineLayout *layout, 
     VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
         .stageCount = static_cast<uint32_t>(m_shaderStages.size()),
-        .pStages = m_shaderStages.data(),
+        .pStages = m_shaderStages.empty() ? nullptr : m_shaderStages.data(),
         .pVertexInputState = &vertexInputState,
         .pInputAssemblyState = &inputAssemblyState,
         .pViewportState = &viewportState,
