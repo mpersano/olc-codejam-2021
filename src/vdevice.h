@@ -14,6 +14,7 @@ class Surface;
 class CommandPool;
 class ShaderModule;
 class Semaphore;
+class Fence;
 class PipelineLayoutBuilder;
 class PipelineBuilder;
 class Memory;
@@ -35,6 +36,7 @@ public:
 
     std::unique_ptr<Surface> createSurface(GLFWwindow *window) const;
     std::unique_ptr<Semaphore> createSemaphore() const;
+    std::unique_ptr<Fence> createFence(bool createSignaled = false) const;
     std::unique_ptr<CommandPool> createCommandPool() const;
     std::unique_ptr<ShaderModule> createShaderModule(const char *spvFilePath) const;
     PipelineLayoutBuilder pipelineLayoutBuilder() const;

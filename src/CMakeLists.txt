@@ -31,6 +31,8 @@ add_executable(game
     vdescriptorpool.h
     vdescriptorset.cpp
     vdescriptorset.h
+    vfence.cpp
+    vfence.h
     util.cpp
     util.h
 )

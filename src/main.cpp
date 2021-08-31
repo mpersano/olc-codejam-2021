@@ -5,6 +5,7 @@
 #include "vdescriptorset.h"
 #include "vdescriptorsetlayout.h"
 #include "vdevice.h"
+#include "vfence.h"
 #include "vmemory.h"
 #include "vpipeline.h"
 #include "vpipelinelayout.h"
@@ -49,6 +50,7 @@ private:
     std::unique_ptr<V::DescriptorPool> m_descriptorPool;
     std::unique_ptr<V::DescriptorSet> m_descriptorSet;
     std::vector<std::unique_ptr<V::CommandBuffer>> m_commandBuffers;
+    std::vector<std::unique_ptr<V::Fence>> m_frameFences;
 };
 
 VulkanRenderer::VulkanRenderer(GLFWwindow *window, int width, int height)
@@ -109,14 +111,16 @@ VulkanRenderer::VulkanRenderer(GLFWwindow *window, int width, int height)
                          .addShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, m_fragmentShaderModule.get())
                          .create(m_pipelineLayout.get(), m_swapchain->renderPass());
 
+    const auto backbufferCount = m_swapchain->backbufferCount();
+
     const auto renderPass = m_swapchain->renderPass();
     const auto &framebuffers = m_swapchain->framebuffers();
-    m_commandBuffers.reserve(framebuffers.size());
+    m_commandBuffers.reserve(backbufferCount);
     const VkRect2D renderArea = {
         .offset = VkOffset2D { 0, 0 },
         .extent = VkExtent2D { m_swapchain->width(), m_swapchain->height() }
     };
-    for (size_t i = 0; i < framebuffers.size(); ++i) {
+    for (size_t i = 0; i < backbufferCount; ++i) {
         auto commandBuffer = m_commandPool->allocateCommandBuffer();
         commandBuffer->begin();
         commandBuffer->beginRenderPass(renderPass, framebuffers[i], renderArea);
@@ -127,13 +131,24 @@ VulkanRenderer::VulkanRenderer(GLFWwindow *window, int width, int height)
         commandBuffer->end();
         m_commandBuffers.push_back(std::move(commandBuffer));
     }
+
+    m_frameFences.reserve(backbufferCount);
+    for (size_t i = 0; i < backbufferCount; ++i)
+        m_frameFences.push_back(m_device->createFence(true));
 }
 
-VulkanRenderer::~VulkanRenderer() = default;
+VulkanRenderer::~VulkanRenderer()
+{
+    for (auto &fence : m_frameFences)
+        fence->wait();
+}
 
 void VulkanRenderer::render() const
 {
     uint32_t imageIndex = m_swapchain->acquireNextImage(m_imageAvailableSemaphore.get());
+
+    m_frameFences[imageIndex]->wait();
+    m_frameFences[imageIndex]->reset();
 
     const VkCommandBuffer commandBuffer = m_commandBuffers[imageIndex]->handle();
     const VkSemaphore imageAvailable = m_imageAvailableSemaphore->handle();
@@ -150,12 +165,10 @@ void VulkanRenderer::render() const
         .signalSemaphoreCount = 1,
         .pSignalSemaphores = &renderFinished
     };
-    if (vkQueueSubmit(m_device->queue(), 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS)
+    if (vkQueueSubmit(m_device->queue(), 1, &submitInfo, m_frameFences[imageIndex]->handle()) != VK_SUCCESS)
         throw std::runtime_error("Failed to submit command");
 
     m_swapchain->queuePresent(imageIndex, m_renderFinishedSemaphore.get());
-
-    vkQueueWaitIdle(m_device->queue()); // FIXME
 }
 
 class Demo

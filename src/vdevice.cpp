@@ -4,6 +4,7 @@
 #include "vcommandpool.h"
 #include "vdescriptorpool.h"
 #include "vdescriptorsetlayout.h"
+#include "vfence.h"
 #include "vmemory.h"
 #include "vpipeline.h"
 #include "vpipelinelayout.h"
@@ -151,6 +152,11 @@ std::unique_ptr<Surface> Device::createSurface(GLFWwindow *window) const
 std::unique_ptr<Semaphore> Device::createSemaphore() const
 {
     return std::make_unique<Semaphore>(this);
+}
+
+std::unique_ptr<Fence> Device::createFence(bool createSignaled) const
+{
+    return std::make_unique<Fence>(this, createSignaled);
 }
 
 std::unique_ptr<CommandPool> Device::createCommandPool() const
