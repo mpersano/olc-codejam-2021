@@ -1,10 +1,12 @@
 #include "vcommandbuffer.h"
 
+#include "vbuffer.h"
 #include "vcommandpool.h"
 #include "vdescriptorset.h"
 #include "vpipeline.h"
 #include "vpipelinelayout.h"
 
+#include <algorithm>
 #include <stdexcept>
 
 namespace V {
@@ -57,6 +59,16 @@ void CommandBuffer::beginRenderPass(VkRenderPass renderPass, VkFramebuffer frame
 void CommandBuffer::bindPipeline(const Pipeline *pipeline) const
 {
     vkCmdBindPipeline(m_handle, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->handle());
+}
+
+void CommandBuffer::bindVertexBuffers(const std::vector<const Buffer *> &buffers) const
+{
+    std::vector<VkBuffer> bufferHandles(buffers.size());
+    std::transform(buffers.begin(), buffers.end(), bufferHandles.begin(), [](const Buffer *buffer) {
+        return buffer->handle();
+    });
+    std::vector<VkDeviceSize> offsets(buffers.size(), 0);
+    vkCmdBindVertexBuffers(m_handle, 0, bufferHandles.size(), bufferHandles.data(), offsets.data());
 }
 
 void CommandBuffer::bindDescriptorSet(const PipelineLayout *pipelineLayout, const DescriptorSet *descriptorSet) const

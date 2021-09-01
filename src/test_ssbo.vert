@@ -1,6 +1,6 @@
 #version 450
 
-// compile with glslangValidator -V shader.vert
+// compile with glslangValidator -V -o test_ssbo.spv test_ssbo.vert
 
 out gl_PerVertex {
     vec4 gl_Position;

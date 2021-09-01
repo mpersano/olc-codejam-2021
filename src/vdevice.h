@@ -34,6 +34,8 @@ public:
     VkDevice device() const { return m_device; }
     VkQueue queue() const { return m_queue; }
 
+    VkMemoryRequirements bufferMemoryRequirements(const Buffer *buffer) const;
+
     std::unique_ptr<Surface> createSurface(GLFWwindow *window) const;
     std::unique_ptr<Semaphore> createSemaphore() const;
     std::unique_ptr<Fence> createFence(bool createSignaled = false) const;
@@ -42,7 +44,7 @@ public:
     PipelineLayoutBuilder pipelineLayoutBuilder() const;
     PipelineBuilder pipelineBuilder() const;
     std::unique_ptr<Memory> allocateMemory(VkDeviceSize size) const;
-    std::unique_ptr<Buffer> createBuffer(VkDeviceSize size) const;
+    std::unique_ptr<Buffer> createBuffer(VkDeviceSize size, VkBufferUsageFlags usage) const;
     DescriptorSetLayoutBuilder descriptorSetLayoutBuilder() const;
     DescriptorPoolBuilder descriptorPoolBuilder() const;
 

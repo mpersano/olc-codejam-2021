@@ -44,11 +44,7 @@ private:
     std::unique_ptr<V::Semaphore> m_imageAvailableSemaphore;
     std::unique_ptr<V::Semaphore> m_renderFinishedSemaphore;
     std::unique_ptr<V::Memory> m_memory;
-    std::unique_ptr<V::Buffer> m_positionBuffer;
-    std::unique_ptr<V::Buffer> m_colorBuffer;
-    std::unique_ptr<V::DescriptorSetLayout> m_descriptorSetLayout;
-    std::unique_ptr<V::DescriptorPool> m_descriptorPool;
-    std::unique_ptr<V::DescriptorSet> m_descriptorSet;
+    std::unique_ptr<V::Buffer> m_vertexBuffer;
     std::vector<std::unique_ptr<V::CommandBuffer>> m_commandBuffers;
     std::vector<std::unique_ptr<V::Fence>> m_frameFences;
 };
@@ -58,54 +54,36 @@ VulkanRenderer::VulkanRenderer(GLFWwindow *window, int width, int height)
     , m_device(new V::Device)
     , m_surface(m_device->createSurface(window))
     , m_swapchain(m_surface->createSwapchain(width, height, 3))
-    , m_vertexShaderModule(m_device->createShaderModule("vert.spv"))
-    , m_fragmentShaderModule(m_device->createShaderModule("frag.spv"))
+    , m_vertexShaderModule(m_device->createShaderModule("test_vertexbuffer.spv"))
+    , m_fragmentShaderModule(m_device->createShaderModule("test_frag.spv"))
     , m_commandPool(m_device->createCommandPool())
     , m_imageAvailableSemaphore(m_device->createSemaphore())
     , m_renderFinishedSemaphore(m_device->createSemaphore())
     , m_memory(m_device->allocateMemory(1024))
-    , m_positionBuffer(m_device->createBuffer(512))
-    , m_colorBuffer(m_device->createBuffer(512))
+    , m_vertexBuffer(m_device->createBuffer(1024, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT))
 {
-    m_positionBuffer->bindMemory(m_memory.get(), 0);
-    m_colorBuffer->bindMemory(m_memory.get(), 512);
-
+    struct Vertex {
+        float x, y, z, w;
+        float r, g, b, a;
+    };
+    m_vertexBuffer->bindMemory(m_memory.get(), 0);
     {
-        float *buffer = m_memory->map<float>();
-
-        float *positions = buffer;
-        // clang-format off
-        positions[ 0] =  0.0; positions[ 1]  = -0.5; positions[ 2] = 0.0; positions[ 3] = 1.0;
-        positions[ 4] =  0.5; positions[ 5]  =  0.5; positions[ 6] = 0.0; positions[ 7] = 1.0;
-        positions[ 8] = -0.5; positions[ 9]  =  0.5; positions[10] = 0.0; positions[11] = 1.0;
-        // clang-format on
-
-        float *colors = &buffer[512 / sizeof(float)];
-        // clang-format off
-        colors[ 0] = 1.0; colors[ 1]  = 0.0; colors[ 2] = 0.0; colors[ 3] = 1.0;
-        colors[ 4] = 1.0; colors[ 5]  = 1.0; colors[ 6] = 0.0; colors[ 7] = 1.0;
-        colors[ 8] = 1.0; colors[ 9]  = 0.0; colors[10] = 1.0; colors[11] = 1.0;
-        // clang-format on
-
+        static const std::vector<Vertex> vertices = {
+            { 0, -.5, 0, 1, 1, 0, 0, 1 },
+            { .5, .5, 0, 1, 1, 1, 0, 1 },
+            { -.5, .5, 0, 1, 1, 1, 1, 1 },
+        };
+        uint8_t *data = m_memory->map<uint8_t>();
+        std::memcpy(data, vertices.data(), vertices.size() * sizeof(Vertex));
         m_memory->unmap();
     }
 
-    m_descriptorSetLayout = m_device->descriptorSetLayoutBuilder()
-                                    .addBinding(0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)
-                                    .addBinding(1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)
-                                    .create();
-
-    m_descriptorPool = m_device->descriptorPoolBuilder()
-                               .add(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 2)
-                               .create();
-
-    m_descriptorSet = m_descriptorPool->allocateDescriptorSet(m_descriptorSetLayout.get());
-    m_descriptorSet->writeBuffer(0, m_positionBuffer.get());
-    m_descriptorSet->writeBuffer(1, m_colorBuffer.get());
-
-    m_pipelineLayout = m_device->pipelineLayoutBuilder().addSetLayout(m_descriptorSetLayout.get()).create();
+    m_pipelineLayout = m_device->pipelineLayoutBuilder().create();
 
     m_pipeline = m_device->pipelineBuilder()
+                         .addVertexInputBinding(0, sizeof(Vertex))
+                         .addVertexInputAttribute(0, 0, VK_FORMAT_R32G32B32A32_SFLOAT, 0) // location 0
+                         .addVertexInputAttribute(1, 0, VK_FORMAT_R32G32B32A32_SFLOAT, 4 * sizeof(float)) // location 1
                          .setViewport(m_swapchain->width(), m_swapchain->height())
                          .addShaderStage(VK_SHADER_STAGE_VERTEX_BIT, m_vertexShaderModule.get())
                          .addShaderStage(VK_SHADER_STAGE_FRAGMENT_BIT, m_fragmentShaderModule.get())
@@ -125,7 +103,7 @@ VulkanRenderer::VulkanRenderer(GLFWwindow *window, int width, int height)
         commandBuffer->begin();
         commandBuffer->beginRenderPass(renderPass, framebuffers[i], renderArea);
         commandBuffer->bindPipeline(m_pipeline.get());
-        commandBuffer->bindDescriptorSet(m_pipelineLayout.get(), m_descriptorSet.get());
+        commandBuffer->bindVertexBuffers({ m_vertexBuffer.get() });
         commandBuffer->draw(3, 1, 0, 0);
         commandBuffer->endRenderPass();
         commandBuffer->end();

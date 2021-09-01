@@ -7,7 +7,7 @@ namespace V {
 class Buffer : private NonCopyable
 {
 public:
-    explicit Buffer(const Device *device, VkDeviceSize size);
+    explicit Buffer(const Device *device, VkDeviceSize size, VkBufferUsageFlags usage);
     ~Buffer();
 
     const Device *device() const { return m_device; }

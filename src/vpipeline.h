@@ -15,6 +15,8 @@ class PipelineBuilder
 public:
     explicit PipelineBuilder(const Device *device);
 
+    PipelineBuilder &addVertexInputBinding(uint32_t binding, uint32_t stride);
+    PipelineBuilder &addVertexInputAttribute(uint32_t location, uint32_t binding, VkFormat format, uint32_t offset);
     PipelineBuilder &setViewport(uint32_t width, uint32_t height);
     PipelineBuilder &addShaderStage(VkShaderStageFlagBits stage, ShaderModule *module);
 
@@ -22,6 +24,8 @@ public:
 
 private:
     const Device *m_device;
+    std::vector<VkVertexInputBindingDescription> m_vertexInputBindings;
+    std::vector<VkVertexInputAttributeDescription> m_vertexInputAttributes;
     VkViewport m_viewport;
     VkRect2D m_scissor;
     std::vector<VkPipelineShaderStageCreateInfo> m_shaderStages;

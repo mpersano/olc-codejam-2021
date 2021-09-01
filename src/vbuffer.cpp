@@ -4,7 +4,7 @@
 
 namespace V {
 
-Buffer::Buffer(const Device *device, VkDeviceSize size)
+Buffer::Buffer(const Device *device, VkDeviceSize size, VkBufferUsageFlags usage)
     : m_device(device)
     , m_size(size)
 {
@@ -12,7 +12,7 @@ Buffer::Buffer(const Device *device, VkDeviceSize size)
     VkBufferCreateInfo bufferCreateInfo {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .size = size,
-        .usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+        .usage = usage,
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 1,
         .pQueueFamilyIndices = &queueFamilyIndex

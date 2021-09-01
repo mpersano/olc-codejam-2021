@@ -184,17 +184,17 @@ std::unique_ptr<Memory> Device::allocateMemory(VkDeviceSize size) const
     const int memoryTypeIndex = [this, size]() -> int {
         VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
         vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &physicalDeviceMemoryProperties);
+        constexpr uint32_t WantedProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
         for (uint32_t i = 0; i < physicalDeviceMemoryProperties.memoryTypeCount; ++i) {
             const VkMemoryType &memoryType = physicalDeviceMemoryProperties.memoryTypes[i];
             const VkMemoryHeap &memoryHeap = physicalDeviceMemoryProperties.memoryHeaps[memoryType.heapIndex];
-            const auto propertyFlags = memoryType.propertyFlags;
-            if ((propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) && (propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) &&
-                memoryHeap.size >= size) {
+            if ((memoryType.propertyFlags & WantedProperties) == WantedProperties && memoryHeap.size >= size)
                 return i;
-            }
         }
         return -1;
     }();
+    if (memoryTypeIndex == -1)
+        throw std::runtime_error("Failed to find memory type");
 
     VkMemoryAllocateInfo memoryAllocateInfo {
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
@@ -204,9 +204,9 @@ std::unique_ptr<Memory> Device::allocateMemory(VkDeviceSize size) const
     return std::make_unique<Memory>(this, memoryAllocateInfo);
 }
 
-std::unique_ptr<Buffer> Device::createBuffer(VkDeviceSize size) const
+std::unique_ptr<Buffer> Device::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage) const
 {
-    return std::make_unique<Buffer>(this, size);
+    return std::make_unique<Buffer>(this, size, usage);
 }
 
 DescriptorSetLayoutBuilder Device::descriptorSetLayoutBuilder() const
@@ -217,6 +217,13 @@ DescriptorSetLayoutBuilder Device::descriptorSetLayoutBuilder() const
 DescriptorPoolBuilder Device::descriptorPoolBuilder() const
 {
     return DescriptorPoolBuilder(this);
+}
+
+VkMemoryRequirements Device::bufferMemoryRequirements(const Buffer *buffer) const
+{
+    VkMemoryRequirements memoryRequirements;
+    vkGetBufferMemoryRequirements(m_device, buffer->handle(), &memoryRequirements);
+    return memoryRequirements;
 }
 
 } // namespace V

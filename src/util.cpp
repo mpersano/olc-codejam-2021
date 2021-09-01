@@ -6,7 +6,7 @@ std::vector<uint8_t> readFile(const char *path)
 {
     std::ifstream file(path, std::ios::binary);
     if (!file.is_open())
-        throw std::runtime_error("Failed to load file?");
+        throw std::runtime_error("Failed to load file " + std::string(path) + "?");
 
     auto *buf = file.rdbuf();
 

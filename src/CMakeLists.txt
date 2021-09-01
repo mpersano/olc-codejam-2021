@@ -1,7 +1,6 @@
 find_package(Vulkan REQUIRED)
 
-add_executable(game
-    main.cpp
+set(VVV_SOURCES
     noncopyable.h
     vdevice.cpp
     vdevice.h
@@ -37,7 +36,16 @@ add_executable(game
     util.h
 )
 
-target_link_libraries(game
+add_library(vvv STATIC ${VVV_SOURCES})
+
+target_link_libraries(vvv
+PUBLIC
     Vulkan::Vulkan
-	glfw
+    glfw
 )
+
+add_executable(test_ssbo test_ssbo.cpp)
+target_link_libraries(test_ssbo vvv)
+
+add_executable(test_vertexbuffer test_vertexbuffer.cpp)
+target_link_libraries(test_vertexbuffer vvv)

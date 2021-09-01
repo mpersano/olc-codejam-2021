@@ -14,6 +14,29 @@ PipelineBuilder::PipelineBuilder(const Device *device)
 {
 }
 
+PipelineBuilder &PipelineBuilder::addVertexInputBinding(uint32_t binding, uint32_t stride)
+{
+    VkVertexInputBindingDescription bindingDescription = {
+        .binding = binding,
+        .stride = stride,
+        .inputRate = VK_VERTEX_INPUT_RATE_VERTEX
+    };
+    m_vertexInputBindings.push_back(bindingDescription);
+    return *this;
+}
+
+PipelineBuilder &PipelineBuilder::addVertexInputAttribute(uint32_t location, uint32_t binding, VkFormat format, uint32_t offset)
+{
+    VkVertexInputAttributeDescription attributeDescription = {
+        .location = location,
+        .binding = binding,
+        .format = format,
+        .offset = offset
+    };
+    m_vertexInputAttributes.push_back(attributeDescription);
+    return *this;
+}
+
 PipelineBuilder &PipelineBuilder::setViewport(uint32_t width, uint32_t height)
 {
     m_viewport = VkViewport {
@@ -47,6 +70,10 @@ std::unique_ptr<Pipeline> PipelineBuilder::create(const PipelineLayout *layout, 
 {
     VkPipelineVertexInputStateCreateInfo vertexInputState = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+        .vertexBindingDescriptionCount = static_cast<uint32_t>(m_vertexInputBindings.size()),
+        .pVertexBindingDescriptions = m_vertexInputBindings.empty() ? nullptr : m_vertexInputBindings.data(),
+        .vertexAttributeDescriptionCount = static_cast<uint32_t>(m_vertexInputAttributes.size()),
+        .pVertexAttributeDescriptions = m_vertexInputAttributes.empty() ? nullptr : m_vertexInputAttributes.data()
     };
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
